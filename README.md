@@ -301,4 +301,4 @@ import type {
 
 ## License
 
-MIT © [horror_amphibian](https://github.com/horror-amphibian)
+MIT © [horror_amphibian](https://github.com/HorrorAmphibian)
