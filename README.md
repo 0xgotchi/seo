@@ -5,19 +5,25 @@
 
 A modern SSR-first SEO metadata toolkit for Next.js App Router. Fully compatible with `generateMetadata` and static rendering. Provides comprehensive SEO management with TypeScript support for all metadata types.
 
-## Features
+---
+
+## ✨ Features
 
 - 🚀 **App Router Ready**: Designed specifically for Next.js App Router
 - 📝 **TypeScript First**: Full type safety for all metadata configurations
 - 🔍 **Comprehensive SEO**: Supports all major SEO tags and protocols
 - 🤖 **Robots & Crawlers**: Fine-grained control over indexing and crawling
 - 🖼️ **Social Media**: Rich OpenGraph and Twitter Card support
-- 📱 **Mobile Optimization**: App icons, theme colors, and viewport control
+- 📱 **Mobile Optimization**: App icons, theme colors, viewport, and format detection
 - 🛡️ **Security**: Built-in support for security headers
 - 🏷️ **Structured Data**: Easy Schema.org JSON-LD integration
 - 🔗 **Canonical & Alternates**: Advanced URL management
+- ⚡ **Preload Assets**: Improve performance with preload support
+- 🧩 **Flexible Title Templates**: Supports dynamic placeholders like `%title%`, `%siteName%`, `%slug%`, etc.
 
-## Installation
+---
+
+## 📦 Installation
 
 ```bash
 npm install amphibian-seo
@@ -27,19 +33,21 @@ yarn add amphibian-seo
 pnpm add amphibian-seo
 ```
 
-## Basic Usage
+---
+
+## 🚀 Basic Usage
 
 ### Layout-level Metadata
 
 ```tsx
 // app/layout.tsx
-import { AmphibianSEOMetadata } from 'amphibian-seo';
+import { Metadata } from 'amphibian-seo';
 
 export function generateMetadata() {
-  return AmphibianSEOMetadata({
+  return Metadata({
     title: {
       default: 'My Site',
-      template: '%s | My Site'
+      template: '%title% | My Site'
     },
     description: 'This is my awesome Next.js site',
     canonicalUrl: 'https://example.com',
@@ -59,67 +67,53 @@ export const metadata = {
 };
 ```
 
-## API Reference
+---
+
+## 📚 API Reference
 
 ### Core Function
 
-#### `AmphibianSEOMetadata(input: AmphibianSEOMetadataInput): Metadata`
+#### `Metadata(input: MetadataInput): Metadata`
 
 The main function that generates Next.js-compatible metadata.
 
-### Input Object Structure
+---
 
-```typescript
-interface AmphibianSEOMetadataInput {
-  // Required fields
+### MetadataInput Interface
+
+```ts
+interface MetadataInput {
   title: string | { default: string; template: string };
   description: string;
-  
-  // Optional fields
   keywords?: string[];
   canonicalUrl?: string;
-  openGraph?: {
-    title?: string;
-    description?: string;
-    url?: string;
-    type?: string;
-    images?: OpenGraphImage[];
-    siteName?: string;
-    locale?: string;
-  };
-  twitter?: Twitter;
+  openGraph?: { ... };
+  twitter?: { ... };
   robots?: RobotsDirectives;
   alternates?: Alternates;
   verification?: Verification;
   additionalMetaTags?: AdditionalMetaTag[];
   preloadAssets?: Array<{ href: string; as: string; crossOrigin?: string }>;
   schemaOrgJSONLD?: SchemaJSONLD | SchemaJSONLD[];
-  pagination?: {
-    next?: string;
-    prev?: string;
-  };
-  mobileApp?: {
-    appleTouchIcon?: string;
-    themeColor?: string;
-    msapplicationTileColor?: string;
-  };
+  pagination?: { next?: string; prev?: string };
+  mobileApp?: { appleTouchIcon?: string; themeColor?: string; msapplicationTileColor?: string };
   securityMetaTags?: Array<{ httpEquiv: string; content: string }>;
   authors?: Author[];
   publisher?: string;
   metadataBase?: URL | string;
-  themeColor?: Array<{ media: string; color: string }>;
+  themeColor?: string | Array<{ media: string; color: string }>;
   viewport?: string;
-  formatDetection?: {
-    telephone?: boolean;
-  };
+  formatDetection?: { telephone?: boolean };
 }
 ```
 
-### Detailed Configuration Examples
+---
 
-#### Basic Metadata
+## 🔧 Configuration Examples
 
-```typescript
+### ✅ Basic Metadata
+
+```ts
 {
   title: 'My Page Title',
   description: 'This is a detailed description of my page',
@@ -128,9 +122,9 @@ interface AmphibianSEOMetadataInput {
 }
 ```
 
-#### OpenGraph Configuration
+### 🖼️ OpenGraph
 
-```typescript
+```ts
 {
   openGraph: {
     title: 'Social Media Title',
@@ -151,9 +145,9 @@ interface AmphibianSEOMetadataInput {
 }
 ```
 
-#### Twitter Cards
+### 🐦 Twitter Cards
 
-```typescript
+```ts
 {
   twitter: {
     card: 'summary_large_image',
@@ -167,14 +161,13 @@ interface AmphibianSEOMetadataInput {
 }
 ```
 
-#### Robots & Crawler Control
+### 🤖 Robots Control
 
-```typescript
+```ts
 {
   robots: {
     index: true,
     follow: true,
-    nocache: false,
     noimageindex: true,
     nosnippet: true,
     googleBot: {
@@ -187,27 +180,33 @@ interface AmphibianSEOMetadataInput {
 }
 ```
 
-#### Structured Data (JSON-LD)
+### 📦 Preload Assets
 
-```typescript
+```ts
+{
+  preloadAssets: [
+    { href: '/fonts/my-font.woff2', as: 'font', crossOrigin: 'anonymous' },
+    { href: '/video/intro.mp4', as: 'video' }
+  ]
+}
+```
+
+### 🧱 Structured Data (JSON-LD)
+
+```ts
 {
   schemaOrgJSONLD: {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "My Website",
-    url: "https://example.com",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://example.com/search?q={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
+    url: "https://example.com"
   }
 }
 ```
 
-#### Mobile App Configuration
+### 📱 Mobile App Configuration
 
-```typescript
+```ts
 {
   mobileApp: {
     appleTouchIcon: '/apple-touch-icon.png',
@@ -217,9 +216,9 @@ interface AmphibianSEOMetadataInput {
 }
 ```
 
-#### Security Headers
+### 🛡️ Security Headers
 
-```typescript
+```ts
 {
   securityMetaTags: [
     { httpEquiv: 'Content-Security-Policy', content: "default-src 'self'" },
@@ -228,31 +227,40 @@ interface AmphibianSEOMetadataInput {
 }
 ```
 
-## Default Values
+---
 
-The package provides sensible defaults that can be overridden:
+## ⚙️ Default Values
 
-```typescript
+The package provides sensible defaults:
+
+```ts
 export const DEFAULT_METADATA = {
   title: {
-    default: 'My Site',
-    template: '%s | My Site',
+    default: 'My Website',
+    template: '%title% | My Website',
   },
   openGraph: {
     type: 'website',
-    siteName: '',
-    images: [],
-    title: '',
-    description: '',
-    url: '',
-    locale: 'pt_BR',
+    siteName: 'My Website',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?...',
+        width: 1200,
+        height: 630,
+        alt: 'My Website Preview Image',
+      },
+    ],
+    title: 'Welcome to My Website',
+    description: 'This is the best place to find awesome content and resources.',
+    url: 'https://example.com',
+    locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: '',
-    description: '',
-    image: '',
-    imageAlt: '',
+    title: 'Welcome to My Website',
+    description: 'Discover great articles and insights on My Website.',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?...',
+    imageAlt: 'Twitter preview image of My Website',
   },
   robots: {
     index: true,
@@ -266,13 +274,13 @@ export const DEFAULT_METADATA = {
 };
 ```
 
-## TypeScript Support
+---
 
-All types are exported for your convenience:
+## 🧠 TypeScript Support
 
-```typescript
+```ts
 import type {
-  AmphibianSEOMetadataInput,
+  MetadataInput,
   OpenGraphImage,
   Twitter,
   RobotsDirectives,
@@ -284,21 +292,27 @@ import type {
 } from 'amphibian-seo';
 ```
 
-## Best Practices
+---
 
-1. **Layout-level vs Page-level**: Define site-wide defaults in your root layout, then override specific values in page metadata
-2. **Title Templates**: Use the template system for consistent title formatting
-3. **Canonical URLs**: Always specify canonical URLs to prevent duplicate content issues
-4. **Image Optimization**: Provide multiple image sizes for OpenGraph and Twitter Cards
-5. **Structured Data**: Use JSON-LD to enhance search engine understanding of your content
-6. **Security Headers**: Implement CSP and other security headers for production sites
+## 🧑‍🏫 Best Practices
 
-## Compatibility
+1. Use layout-level config for defaults, and page-level overrides
+2. Prefer semantic metadata (`title`, `description`, etc.)
+3. Always define canonical URLs to prevent duplicates
+4. Use `%title%`, `%siteName%`, etc., for consistent templates
+5. Include preload hints for performance-critical resources
+6. Add structured data to boost search visibility
 
-- Next.js 13+ (App Router required)
-- React 18+
-- TypeScript 5+
+---
 
-## License
+## ✅ Compatibility
 
-MIT © [horror_amphibian](https://github.com/horror-amphibian)
+- ✅ Next.js 13+ (App Router)
+- ✅ React 18+
+- ✅ TypeScript 5+
+
+---
+
+## 📄 License
+
+MIT © [horror_amphibian](https://github.com/HorrorAmphibian)

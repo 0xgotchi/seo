@@ -1,6 +1,6 @@
-import { Metadata } from 'next';
+import { Metadata as NextMetadata } from 'next';
 import {
-  AmphibianSEOMetadataInput,
+  MetadataInput,
   RobotsDirectives,
   AdditionalMetaTag,
 } from '../types';
@@ -16,9 +16,16 @@ function isRobotsDirectives(obj: any): obj is RobotsDirectives {
   );
 }
 
-export const AmphibianSEOMetadata = (
-  metadata: AmphibianSEOMetadataInput
-): Metadata => {
+function resolveTemplate(template: string, values: Record<string, string>): string {
+  return Object.entries(values).reduce(
+    (acc, [key, value]) => acc.replace(new RegExp(`%${key}%`, 'g'), value),
+    template
+  );
+}
+
+export const Metadata = (
+  metadata: MetadataInput
+): NextMetadata => {
   const {
     title: rawTitle,
     description,
@@ -29,11 +36,15 @@ export const AmphibianSEOMetadata = (
     robots,
     alternates,
     verification,
-    additionalMetaTags,
+    additionalMetaTags = [],
     schemaOrgJSONLD,
     pagination,
     mobileApp,
     securityMetaTags,
+    themeColor,
+    viewport,
+    formatDetection,
+    preloadAssets,
   } = { ...DEFAULT_METADATA, ...metadata };
 
   let title: string | { default: string; template: string };
@@ -47,9 +58,10 @@ export const AmphibianSEOMetadata = (
       default: rawTitle.default,
       template: rawTitle.template,
     };
-    computedTitle = rawTitle.default
-      ? rawTitle.template.replace('%s', rawTitle.default)
-      : rawTitle.template.replace('%s', '').trim();
+    computedTitle = resolveTemplate(rawTitle.template, {
+      title: rawTitle.default,
+      siteName: DEFAULT_METADATA.openGraph.siteName,
+    }).trim();
   }
 
   const metadataBase = canonicalUrl ? new URL(canonicalUrl) : undefined;
@@ -110,7 +122,7 @@ export const AmphibianSEOMetadata = (
     image: customTwitter?.image,
   };
 
-  const generatedMetadata: Metadata = {
+  const generatedMetadata: NextMetadata = {
     ...(typeof title === 'string'
       ? { title }
       : {
@@ -139,19 +151,32 @@ export const AmphibianSEOMetadata = (
     }),
     ...(mobileApp && { mobileApp }),
     ...(securityMetaTags && { security: securityMetaTags }),
+    ...(themeColor && { themeColor }),
+    ...(viewport && { viewport }),
+    ...(formatDetection && { formatDetection }),
   };
 
-  if (additionalMetaTags?.length) {
-    generatedMetadata.other = additionalMetaTags.reduce(
-      (acc: Record<string, string>, tag: AdditionalMetaTag) => {
-        const key = tag.name || tag.property || tag.httpEquiv || '';
-        if (key && tag.content) {
-          acc[key] = tag.content;
-        }
-        return acc;
-      },
-      {}
-    );
+  if (additionalMetaTags?.length || preloadAssets?.length) {
+    const otherMeta: Record<string, string> = {};
+
+    additionalMetaTags.forEach((tag) => {
+      const key = tag.name || tag.property || tag.httpEquiv || '';
+      if (key && tag.content) {
+        otherMeta[key] = tag.content;
+      }
+    });
+
+    preloadAssets?.forEach((asset) => {
+      const preloadKey = `preload::${asset.href}`;
+      otherMeta[preloadKey] = JSON.stringify({
+        rel: 'preload',
+        href: asset.href,
+        as: asset.as,
+        ...(asset.crossOrigin && { crossOrigin: asset.crossOrigin }),
+      });
+    });
+
+    generatedMetadata.other = otherMeta;
   }
 
   return generatedMetadata;

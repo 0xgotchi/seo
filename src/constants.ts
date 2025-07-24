@@ -31,7 +31,7 @@ export const DEFAULT_METADATA = {
     follow: true,
   },
   mobileApp: {
-    appleTouchIcon: 'https://cdn-icons-png.flaticon.com/512/888/888879.png',
+    appleTouchIcon: '/apple-touch-icon.png',
     themeColor: '#000000',
     msapplicationTileColor: '#000000',
   },

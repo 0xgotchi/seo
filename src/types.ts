@@ -74,7 +74,7 @@ export type Author = {
   url: string;
 };
 
-export type AmphibianSEOMetadataInput = {
+export type MetadataInput = {
   title: string | { default: string; template: string };
   description: string;
   keywords?: string[];
@@ -108,7 +108,7 @@ export type AmphibianSEOMetadataInput = {
   authors?: Author[];
   publisher?: string;
   metadataBase?: URL | string;
-  themeColor?: Array<{ media: string; color: string }>;
+  themeColor?: Array<{ media: string; color: string }> | string;
   viewport?: string;
   formatDetection?: {
     telephone?: boolean;
