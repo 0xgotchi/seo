@@ -1,4 +1,3 @@
-// src/types.ts
 export type OpenGraphImage = {
   url: string;
   width?: number;
@@ -96,7 +95,7 @@ export type MetadataInput = {
     locale?: string;
   };
   twitter?: Twitter & {
-    image?: string; // Shorthand adicionado aqui
+    image?: string;
   };
   robots?: RobotsDirectives;
   alternates?: Alternates;

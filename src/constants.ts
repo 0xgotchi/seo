@@ -1,4 +1,3 @@
-// src/constants.ts
 export const DEFAULT_METADATA = {
   title: {
     default: 'My Website',

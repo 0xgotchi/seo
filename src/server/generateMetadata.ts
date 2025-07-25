@@ -1,8 +1,8 @@
-// src/server/generateMetadata.ts
 import { Metadata as NextMetadata } from 'next';
 import {
   MetadataInput,
   RobotsDirectives,
+  TwitterImage,
 } from '../types';
 import { DEFAULT_METADATA } from '../constants';
 
@@ -45,6 +45,8 @@ export const Metadata = (
     viewport,
     formatDetection,
     preloadAssets = [],
+    authors,
+    publisher,
   } = { ...DEFAULT_METADATA, ...metadata };
 
   let title: string | { default: string; template: string };
@@ -114,11 +116,19 @@ export const Metadata = (
     url: customOpenGraph?.url || canonicalUrl,
   };
 
-  const twitterImages =
+  const rawImages =
     customTwitter.images ??
     (typeof (customTwitter as any).image === 'string'
       ? [(customTwitter as any).image]
       : DEFAULT_METADATA.twitter.images);
+
+  const twitterImages: TwitterImage[] = Array.isArray(rawImages)
+    ? rawImages.map((img) =>
+        typeof img === 'string' ? { url: img } : img
+      )
+    : typeof rawImages === 'string'
+    ? [{ url: rawImages }]
+    : [];
 
   const twitter = {
     ...DEFAULT_METADATA.twitter,
@@ -159,9 +169,17 @@ export const Metadata = (
       : {}),
     ...(mobileApp ? { mobileApp } : {}),
     ...(securityMetaTags ? { security: securityMetaTags } : {}),
-    ...(themeColor ? { themeColor } : {}),
     ...(viewport ? { viewport } : {}),
     ...(formatDetection ? { formatDetection } : {}),
+    ...(themeColor
+      ? {
+          themeColor: Array.isArray(themeColor)
+            ? themeColor.map((t) => ({ media: t.media, color: t.color }))
+            : themeColor,
+        }
+      : {}),
+    ...(authors ? { authors } : {}),
+    ...(publisher ? { publisher } : {}),
   };
 
   if (additionalMetaTags.length || preloadAssets.length) {

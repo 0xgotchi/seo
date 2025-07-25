@@ -3,23 +3,23 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/amphibian-seo.svg)](https://www.npmjs.com/package/amphibian-seo)
 
-A modern SSR-first SEO metadata toolkit for Next.js App Router. Fully compatible with `generateMetadata` and static rendering. Provides comprehensive SEO management with TypeScript support for all metadata types.
+A modern, SSR-first SEO metadata toolkit for Next.js App Router. Fully compatible with Next.js’s `generateMetadata` API, it provides complete SEO management with full TypeScript support for all metadata types.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- 🚀 **App Router Ready**: Designed specifically for Next.js App Router
-- 📝 **TypeScript First**: Full type safety for all metadata configurations
-- 🔍 **Comprehensive SEO**: Supports all major SEO tags and protocols
-- 🤖 **Robots & Crawlers**: Fine-grained control over indexing and crawling
-- 🖼️ **Social Media**: Rich OpenGraph and Twitter Card support
-- 📱 **Mobile Optimization**: App icons, theme colors, viewport, and format detection
-- 🛡️ **Security**: Built-in support for security headers
-- 🏷️ **Structured Data**: Easy Schema.org JSON-LD integration
-- 🔗 **Canonical & Alternates**: Advanced URL management
-- ⚡ **Preload Assets**: Improve performance with preload support
-- 🧩 **Flexible Title Templates**: Supports dynamic placeholders like `%title%`, `%siteName%`, `%slug%`, etc.
+* 🚀 Built for Next.js App Router
+* 📝 TypeScript-first with comprehensive type definitions
+* 🔍 Supports all major SEO tags, OpenGraph, and Twitter Cards
+* 🤖 Fine-grained control over robots and crawlers (including GoogleBot)
+* 🖼️ Rich social media metadata support
+* 📱 Mobile app optimizations (icons, theme colors, viewport, etc.)
+* 🛡️ Configurable security meta tags
+* 🏷️ Easy Schema.org JSON-LD integration
+* 🔗 Canonical URLs and alternates management
+* ⚡ Asset preload for performance improvements
+* 🧩 Flexible dynamic title templates like `%title%`, `%siteName%`, `%slug%`
 
 ---
 
@@ -37,7 +37,7 @@ pnpm add amphibian-seo
 
 ## 🚀 Basic Usage
 
-### Layout-level Metadata
+### Layout-level Metadata (with `generateMetadata`)
 
 ```tsx
 // app/layout.tsx
@@ -47,11 +47,11 @@ export function generateMetadata() {
   return Metadata({
     title: {
       default: 'My Site',
-      template: '%title% | My Site'
+      template: '%title% | My Site',
     },
     description: 'This is my awesome Next.js site',
     canonicalUrl: 'https://example.com',
-    // ... other SEO configurations
+    // other SEO configurations
   });
 }
 ```
@@ -63,32 +63,40 @@ export function generateMetadata() {
 export const metadata = {
   title: 'Home Page',
   description: 'Welcome to our homepage',
-  // ... page-specific SEO configurations
+  // page-specific SEO configs
 };
 ```
 
 ---
 
-## 📚 API Reference
+## 📚 API Overview
 
-### Core Function
+### Main Function
 
-#### `Metadata(input: MetadataInput): Metadata`
+#### `Metadata(input: MetadataInput): NextMetadata`
 
-The main function that generates Next.js-compatible metadata.
+Generates Next.js-compatible metadata from your input.
 
 ---
 
-### MetadataInput Interface
+## 🛠️ MetadataInput Interface
 
 ```ts
-interface MetadataInput {
+type MetadataInput = {
   title: string | { default: string; template: string };
   description: string;
   keywords?: string[];
   canonicalUrl?: string;
-  openGraph?: { ... };
-  twitter?: { ... };
+  openGraph?: {
+    title?: string;
+    description?: string;
+    url?: string;
+    type?: string;
+    images?: OpenGraphImage[];
+    siteName?: string;
+    locale?: string;
+  };
+  twitter?: Twitter & { images?: string[] };
   robots?: RobotsDirectives;
   alternates?: Alternates;
   verification?: Verification;
@@ -96,7 +104,11 @@ interface MetadataInput {
   preloadAssets?: Array<{ href: string; as: string; crossOrigin?: string }>;
   schemaOrgJSONLD?: SchemaJSONLD | SchemaJSONLD[];
   pagination?: { next?: string; prev?: string };
-  mobileApp?: { appleTouchIcon?: string; themeColor?: string; msapplicationTileColor?: string };
+  mobileApp?: {
+    appleTouchIcon?: string;
+    themeColor?: string;
+    msapplicationTileColor?: string;
+  };
   securityMetaTags?: Array<{ httpEquiv: string; content: string }>;
   authors?: Author[];
   publisher?: string;
@@ -104,25 +116,25 @@ interface MetadataInput {
   themeColor?: string | Array<{ media: string; color: string }>;
   viewport?: string;
   formatDetection?: { telephone?: boolean };
-}
+};
 ```
 
 ---
 
 ## 🔧 Configuration Examples
 
-### ✅ Basic Metadata
+### Basic Metadata
 
 ```ts
 {
   title: 'My Page Title',
-  description: 'This is a detailed description of my page',
+  description: 'A detailed description of my page',
   keywords: ['nextjs', 'seo', 'metadata'],
   canonicalUrl: 'https://example.com/my-page'
 }
 ```
 
-### 🖼️ OpenGraph
+### OpenGraph
 
 ```ts
 {
@@ -136,16 +148,16 @@ interface MetadataInput {
         url: 'https://example.com/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'My OpenGraph Image'
+        alt: 'OpenGraph Image'
       }
     ],
     siteName: 'My Website',
-    locale: 'en_US'
+    locale: 'en_US',
   }
 }
 ```
 
-### 🐦 Twitter Cards
+### Twitter Cards
 
 ```ts
 {
@@ -155,13 +167,12 @@ interface MetadataInput {
     creator: '@creator',
     title: 'Twitter Card Title',
     description: 'Twitter Card Description',
-    image: 'https://example.com/twitter-image.jpg',
-    imageAlt: 'Twitter Image Alt Text'
+    images: ['https://example.com/twitter-image.jpg']
   }
 }
 ```
 
-### 🤖 Robots Control
+### Robots Control
 
 ```ts
 {
@@ -174,24 +185,24 @@ interface MetadataInput {
       index: true,
       follow: false,
       'max-image-preview': 'large',
-      'max-snippet': 100
+      'max-snippet': 100,
     }
   }
 }
 ```
 
-### 📦 Preload Assets
+### Preload Assets
 
 ```ts
 {
   preloadAssets: [
     { href: '/fonts/my-font.woff2', as: 'font', crossOrigin: 'anonymous' },
-    { href: '/video/intro.mp4', as: 'video' }
+    { href: '/videos/intro.mp4', as: 'video' }
   ]
 }
 ```
 
-### 🧱 Structured Data (JSON-LD)
+### JSON-LD Structured Data
 
 ```ts
 {
@@ -204,7 +215,7 @@ interface MetadataInput {
 }
 ```
 
-### 📱 Mobile App Configuration
+### Mobile App Configuration
 
 ```ts
 {
@@ -216,7 +227,7 @@ interface MetadataInput {
 }
 ```
 
-### 🛡️ Security Headers
+### Security Meta Tags
 
 ```ts
 {
@@ -229,7 +240,7 @@ interface MetadataInput {
 
 ---
 
-## ⚙️ Default Values
+## ⚙️ Default Metadata Values
 
 The package provides sensible defaults:
 
@@ -239,6 +250,7 @@ export const DEFAULT_METADATA = {
     default: 'My Website',
     template: '%title% | My Website',
   },
+  description: 'This is the best place to find awesome content and resources.',
   openGraph: {
     type: 'website',
     siteName: 'My Website',
@@ -259,8 +271,7 @@ export const DEFAULT_METADATA = {
     card: 'summary_large_image',
     title: 'Welcome to My Website',
     description: 'Discover great articles and insights on My Website.',
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?...',
-    imageAlt: 'Twitter preview image of My Website',
+    images: ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?...'],
   },
   robots: {
     index: true,
@@ -278,6 +289,8 @@ export const DEFAULT_METADATA = {
 
 ## 🧠 TypeScript Support
 
+You can import types like this:
+
 ```ts
 import type {
   MetadataInput,
@@ -288,7 +301,7 @@ import type {
   Verification,
   AdditionalMetaTag,
   SchemaJSONLD,
-  Author
+  Author,
 } from 'amphibian-seo';
 ```
 
@@ -296,23 +309,23 @@ import type {
 
 ## 🧑‍🏫 Best Practices
 
-1. Use layout-level config for defaults, and page-level overrides
+1. Use layout-level metadata as defaults and override at page level
 2. Prefer semantic metadata (`title`, `description`, etc.)
-3. Always define canonical URLs to prevent duplicates
-4. Use `%title%`, `%siteName%`, etc., for consistent templates
-5. Include preload hints for performance-critical resources
-6. Add structured data to boost search visibility
+3. Always define canonical URLs to avoid duplicates
+4. Use dynamic title templates for consistency (`%title%`, `%siteName%`)
+5. Add preload hints for critical resources to boost performance
+6. Include structured data (JSON-LD) to improve search visibility
 
 ---
 
 ## ✅ Compatibility
 
-- ✅ Next.js 13+ (App Router)
-- ✅ React 18+
-- ✅ TypeScript 5+
+* Next.js 13+ (App Router)
+* React 18+
+* TypeScript 5+
 
 ---
 
 ## 📄 License
 
-MIT © [horror_amphibian](https://github.com/HorrorAmphibian)
+MIT © [horror\_amphibian](https://github.com/HorrorAmphibian)
