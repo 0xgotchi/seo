@@ -1,3 +1,4 @@
+// src/types.ts
 export type OpenGraphImage = {
   url: string;
   width?: number;
@@ -7,6 +8,13 @@ export type OpenGraphImage = {
 };
 
 export type TwitterCardType = 'summary' | 'summary_large_image' | 'app' | 'player';
+
+export type TwitterImage = {
+  url: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+};
 
 export type AdditionalMetaTag = {
   name?: string;
@@ -65,8 +73,7 @@ export type Twitter = {
   creator?: string;
   title?: string;
   description?: string;
-  image?: string;
-  imageAlt?: string;
+  images?: string | string[] | TwitterImage[];
 };
 
 export type Author = {
@@ -88,7 +95,9 @@ export type MetadataInput = {
     siteName?: string;
     locale?: string;
   };
-  twitter?: Twitter;
+  twitter?: Twitter & {
+    image?: string; // Shorthand adicionado aqui
+  };
   robots?: RobotsDirectives;
   alternates?: Alternates;
   verification?: Verification;

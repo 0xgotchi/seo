@@ -1,6 +1,6 @@
 {
   "name": "amphibian-seo",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "description": "Modern SSR-first SEO metadata toolkit for Next.js App Router. Fully compatible with generateMetadata and static rendering.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "jest"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -24,8 +25,11 @@
   },
   "devDependencies": {
     "@testing-library/react": "^14.0.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^18.0.0",
     "@types/react": "^18.0.0",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.0.0"
   },
   "keywords": [
@@ -48,5 +52,13 @@
     "app-directory"
   ],
   "author": "horror_amphibian",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HorrorAmphibian/amphibian-seo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/HorrorAmphibian/amphibian-seo/issues"
+  },
+  "homepage": "https://github.com/HorrorAmphibian/amphibian-seo#readme"
 }

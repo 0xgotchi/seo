@@ -1,8 +1,10 @@
+// src/constants.ts
 export const DEFAULT_METADATA = {
   title: {
     default: 'My Website',
-    template: '%s | My Website',
+    template: '%title% | My Website',
   },
+  description: 'This is the best place to find awesome content and resources.',
   openGraph: {
     type: 'website',
     siteName: 'My Website',
@@ -23,8 +25,7 @@ export const DEFAULT_METADATA = {
     card: 'summary_large_image' as const,
     title: 'Welcome to My Website',
     description: 'Discover great articles and insights on My Website.',
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-    imageAlt: 'Twitter preview image of My Website',
+    images: ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'],
   },
   robots: {
     index: true,

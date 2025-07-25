@@ -1,8 +1,8 @@
+// src/server/generateMetadata.ts
 import { Metadata as NextMetadata } from 'next';
 import {
   MetadataInput,
   RobotsDirectives,
-  AdditionalMetaTag,
 } from '../types';
 import { DEFAULT_METADATA } from '../constants';
 
@@ -31,8 +31,8 @@ export const Metadata = (
     description,
     keywords,
     canonicalUrl,
-    openGraph: customOpenGraph,
-    twitter: customTwitter,
+    openGraph: customOpenGraph = {},
+    twitter: customTwitter = {},
     robots,
     alternates,
     verification,
@@ -44,7 +44,7 @@ export const Metadata = (
     themeColor,
     viewport,
     formatDetection,
-    preloadAssets,
+    preloadAssets = [],
   } = { ...DEFAULT_METADATA, ...metadata };
 
   let title: string | { default: string; template: string };
@@ -114,12 +114,18 @@ export const Metadata = (
     url: customOpenGraph?.url || canonicalUrl,
   };
 
+  const twitterImages =
+    customTwitter.images ??
+    (typeof (customTwitter as any).image === 'string'
+      ? [(customTwitter as any).image]
+      : DEFAULT_METADATA.twitter.images);
+
   const twitter = {
     ...DEFAULT_METADATA.twitter,
     ...customTwitter,
     title: customTwitter?.title || computedTitle,
     description: customTwitter?.description || description,
-    image: customTwitter?.image,
+    images: twitterImages,
   };
 
   const generatedMetadata: NextMetadata = {
@@ -137,26 +143,28 @@ export const Metadata = (
       ...(canonicalUrl && { canonical: canonicalUrl }),
       ...alternates,
     },
-    ...(keywords?.length && { keywords: keywords.join(', ') }),
-    ...(openGraph && { openGraph }),
-    ...(twitter && { twitter }),
+    ...(keywords?.length ? { keywords: keywords.join(', ') } : {}),
+    ...(openGraph ? { openGraph } : {}),
+    ...(twitter ? { twitter } : {}),
     ...(robotsContent ? { robots: robotsContent } : {}),
-    ...(verification && { verification }),
-    ...(schemaOrgJSONLD && { metadata: { jsonLd: schemaOrgJSONLD } }),
-    ...(pagination && {
-      pagination: {
-        previous: pagination.prev ?? undefined,
-        next: pagination.next ?? undefined,
-      },
-    }),
-    ...(mobileApp && { mobileApp }),
-    ...(securityMetaTags && { security: securityMetaTags }),
-    ...(themeColor && { themeColor }),
-    ...(viewport && { viewport }),
-    ...(formatDetection && { formatDetection }),
+    ...(verification ? { verification } : {}),
+    ...(schemaOrgJSONLD ? { metadata: { jsonLd: schemaOrgJSONLD } } : {}),
+    ...(pagination
+      ? {
+          pagination: {
+            previous: pagination.prev ?? undefined,
+            next: pagination.next ?? undefined,
+          },
+        }
+      : {}),
+    ...(mobileApp ? { mobileApp } : {}),
+    ...(securityMetaTags ? { security: securityMetaTags } : {}),
+    ...(themeColor ? { themeColor } : {}),
+    ...(viewport ? { viewport } : {}),
+    ...(formatDetection ? { formatDetection } : {}),
   };
 
-  if (additionalMetaTags?.length || preloadAssets?.length) {
+  if (additionalMetaTags.length || preloadAssets.length) {
     const otherMeta: Record<string, string> = {};
 
     additionalMetaTags.forEach((tag) => {
@@ -166,7 +174,7 @@ export const Metadata = (
       }
     });
 
-    preloadAssets?.forEach((asset) => {
+    preloadAssets.forEach((asset) => {
       const preloadKey = `preload::${asset.href}`;
       otherMeta[preloadKey] = JSON.stringify({
         rel: 'preload',
