@@ -137,5 +137,3 @@ dist
 
 # Ignore test and config files and folders
 package-lock.json
-jest.config.js
-__tests__/
