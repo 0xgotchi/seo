@@ -3,13 +3,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/amphibian-seo.svg)](https://www.npmjs.com/package/amphibian-seo)
 
-A modern, SSR-first SEO metadata toolkit for Next.js App Router. Fully compatible with Next.js’s `generateMetadata` API, it provides complete SEO management with full TypeScript support for all metadata types.
+A modern SSR-first SEO metadata toolkit for Next.js App Router. Supports OpenGraph, Twitter Cards, robots, alternates, JSON-LD, preload, meta/link tags, Apple Web App, and advanced TypeScript types. Fully compatible with Next.js’s `generateMetadata` API and static rendering.
 
 ---
 
 ## ✨ Key Features
 
-* 🚀 Built for Next.js App Router
+* 🚀 SSR-first, built for Next.js App Router
 * 📝 TypeScript-first with comprehensive type definitions
 * 🔍 Supports all major SEO tags, OpenGraph, and Twitter Cards
 * 🤖 Fine-grained control over robots and crawlers (including GoogleBot)
@@ -17,9 +17,10 @@ A modern, SSR-first SEO metadata toolkit for Next.js App Router. Fully compatibl
 * 📱 Mobile app optimizations (icons, theme colors, viewport, etc.)
 * 🛡️ Configurable security meta tags
 * 🏷️ Easy Schema.org JSON-LD integration
-* 🔗 Canonical URLs and alternates management
+* 🔗 Canonical URLs and alternates management (hreflang, media, types, mobile)
 * ⚡ Asset preload for performance improvements
-* 🧩 Flexible dynamic title templates like `%title%`, `%siteName%`, `%slug%`
+* 🧩 Flexible dynamic title templates like `%title%`, `%siteName%`
+* 🧑‍💻 Full support for authors, publisher, verification, and more
 
 ---
 
@@ -73,7 +74,7 @@ export const metadata = {
 
 ### Main Function
 
-#### `Metadata(input: MetadataInput): NextMetadata`
+#### `Metadata(input: MetadataInput): NextMetadata & { jsonLD?: string }`
 
 Generates Next.js-compatible metadata from your input.
 
@@ -83,39 +84,51 @@ Generates Next.js-compatible metadata from your input.
 
 ```ts
 type MetadataInput = {
-  title: string | { default: string; template: string };
-  description: string;
+  title?: string | { default: string; template?: string | ((title?: string) => string) };
+  defaultTitle?: string;
+  titleTemplate?: string | ((title?: string) => string);
+  description?: string;
   keywords?: string[];
   canonicalUrl?: string;
-  openGraph?: {
-    title?: string;
-    description?: string;
-    url?: string;
-    type?: string;
-    images?: OpenGraphImage[];
-    siteName?: string;
-    locale?: string;
-  };
-  twitter?: Twitter & { images?: string[] };
+  noindex?: boolean;
+  nofollow?: boolean;
+  openGraph?: OpenGraph;
+  twitter?: Twitter;
   robots?: RobotsDirectives;
   alternates?: Alternates;
   verification?: Verification;
   additionalMetaTags?: AdditionalMetaTag[];
-  preloadAssets?: Array<{ href: string; as: string; crossOrigin?: string }>;
+  additionalLinkTags?: AdditionalLinkTag[];
+  preloadAssets?: PreloadAsset[];
   schemaOrgJSONLD?: SchemaJSONLD | SchemaJSONLD[];
   pagination?: { next?: string; prev?: string };
   mobileApp?: {
     appleTouchIcon?: string;
     themeColor?: string;
     msapplicationTileColor?: string;
+    appleWebAppCapable?: boolean | 'yes' | 'no';
   };
   securityMetaTags?: Array<{ httpEquiv: string; content: string }>;
-  authors?: Author[];
+  authors?: (Author | string)[];
   publisher?: string;
   metadataBase?: URL | string;
-  themeColor?: string | Array<{ media: string; color: string }>;
+  themeColor?: Array<{ media: string; color: string }> | string;
   viewport?: string;
-  formatDetection?: { telephone?: boolean };
+  formatDetection?: {
+    telephone?: boolean;
+    date?: boolean;
+    email?: boolean;
+    address?: boolean;
+  };
+  facebook?: {
+    appId?: string;
+    pages?: string;
+  };
+  appleWebApp?: {
+    capable?: boolean | 'yes' | 'no';
+    title?: string;
+    statusBarStyle?: 'default' | 'black' | 'black-translucent';
+  };
 };
 ```
 
@@ -167,7 +180,7 @@ type MetadataInput = {
     creator: '@creator',
     title: 'Twitter Card Title',
     description: 'Twitter Card Description',
-    images: ['https://example.com/twitter-image.jpg']
+    image: 'https://example.com/twitter-image.jpg'
   }
 }
 ```
@@ -187,6 +200,23 @@ type MetadataInput = {
       'max-image-preview': 'large',
       'max-snippet': 100,
     }
+  }
+}
+```
+
+### Alternates (hreflang, media, types, mobile)
+
+```ts
+{
+  alternates: {
+    canonical: 'https://example.com',
+    languages: {
+      'en-US': 'https://example.com/en',
+      'ru-RU': 'https://example.com/ru'
+    },
+    media: { 'screen': 'https://example.com/screen' },
+    types: { 'application/json': 'https://example.com/data.json' },
+    mobileAlternate: { href: '/m', media: 'only screen' }
   }
 }
 ```
@@ -238,6 +268,30 @@ type MetadataInput = {
 }
 ```
 
+### Authors and Publisher
+
+```ts
+{
+  authors: [
+    'Author 1',
+    { name: 'Author 2', url: 'https://a.com' }
+  ],
+  publisher: 'My Publisher'
+}
+```
+
+### Apple Web App
+
+```ts
+{
+  appleWebApp: {
+    capable: true,
+    title: 'App',
+    statusBarStyle: 'black-translucent'
+  }
+}
+```
+
 ---
 
 ## ⚙️ Default Metadata Values
@@ -271,7 +325,10 @@ export const DEFAULT_METADATA = {
     card: 'summary_large_image',
     title: 'Welcome to My Website',
     description: 'Discover great articles and insights on My Website.',
-    images: ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?...'],
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?...',
+    site: '',
+    creator: '',
+    handle: '',
   },
   robots: {
     index: true,
@@ -281,6 +338,7 @@ export const DEFAULT_METADATA = {
     appleTouchIcon: '/apple-touch-icon.png',
     themeColor: '#000000',
     msapplicationTileColor: '#000000',
+    appleWebAppCapable: 'yes',
   },
 };
 ```
@@ -300,6 +358,8 @@ import type {
   Alternates,
   Verification,
   AdditionalMetaTag,
+  AdditionalLinkTag,
+  PreloadAsset,
   SchemaJSONLD,
   Author,
 } from 'amphibian-seo';
@@ -315,6 +375,7 @@ import type {
 4. Use dynamic title templates for consistency (`%title%`, `%siteName%`)
 5. Add preload hints for critical resources to boost performance
 6. Include structured data (JSON-LD) to improve search visibility
+7. Use alternates for internationalization and device targeting
 
 ---
 
@@ -328,4 +389,4 @@ import type {
 
 ## 📄 License
 
-MIT © [horror\_amphibian](https://github.com/HorrorAmphibian)
+MIT © [horror_amphibian](https://github.com/HorrorAmphibian)

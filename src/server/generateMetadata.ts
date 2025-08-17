@@ -1,42 +1,58 @@
 import { Metadata as NextMetadata } from 'next';
 import {
   MetadataInput,
-  RobotsDirectives,
-  TwitterImage,
+  Author,
+  SchemaJSONLD,
 } from '../types';
 import { DEFAULT_METADATA } from '../constants';
+import { resolveTemplate } from './utils/resolveTemplate';
+import { processRobotsDirectives } from './utils/processRobotsDirectives';
+import { processOpenGraph } from './utils/processOpenGraph';
+import { processAlternates } from './utils/processAlternates';
+import { generateJsonLD } from './utils/processJsonLD';
+import { processTwitterMeta } from './utils/processTwitterMeta';
 
-function isRobotsDirectives(obj: any): obj is RobotsDirectives {
-  return (
-    typeof obj === 'object' &&
-    (obj.nocache !== undefined ||
-      obj.noimageindex !== undefined ||
-      obj.nosnippet !== undefined ||
-      obj.googleBot !== undefined)
-  );
+type OtherDict = Record<string, string | number | (string | number)[] | object>;
+
+/**
+ * Merges additional meta tags into the target 'other' metadata object.
+ * @param target The original 'other' metadata object.
+ * @param additions The new meta tags to add.
+ * @returns The merged 'other' metadata object.
+ */
+function mergeOtherMeta(
+  target: NextMetadata['other'],
+  additions: OtherDict
+): NextMetadata['other'] {
+  const base = (target ?? {}) as OtherDict;
+  return { ...base, ...additions } as NextMetadata['other'];
 }
 
-function resolveTemplate(template: string, values: Record<string, string>): string {
-  return Object.entries(values).reduce(
-    (acc, [key, value]) => acc.replace(new RegExp(`%${key}%`, 'g'), value),
-    template
-  );
-}
-
+/**
+ * Generates the metadata object for the page, including OpenGraph, Twitter, robots, alternates, etc.
+ * @param metadata The input metadata object.
+ * @returns The processed metadata object, ready for Next.js.
+ */
 export const Metadata = (
   metadata: MetadataInput
-): NextMetadata => {
+): NextMetadata & { jsonLD?: string } => {
+  // Destructure and set defaults
   const {
     title: rawTitle,
+    defaultTitle,
+    titleTemplate,
     description,
     keywords,
     canonicalUrl,
     openGraph: customOpenGraph = {},
     twitter: customTwitter = {},
     robots,
+    noindex,
+    nofollow,
     alternates,
     verification,
     additionalMetaTags = [],
+    additionalLinkTags = [],
     schemaOrgJSONLD,
     pagination,
     mobileApp,
@@ -47,123 +63,126 @@ export const Metadata = (
     preloadAssets = [],
     authors,
     publisher,
+    facebook,
+    appleWebApp,
   } = { ...DEFAULT_METADATA, ...metadata };
 
-  let title: string | { default: string; template: string };
+  let title: NextMetadata['title'];
   let computedTitle: string;
 
-  if (typeof rawTitle === 'string') {
-    title = rawTitle;
-    computedTitle = rawTitle;
-  } else {
+  // Handle object title with default and template
+  if (rawTitle && typeof rawTitle === 'object' && 'default' in rawTitle) {
+    const templateValue = typeof rawTitle.template === 'string'
+      ? rawTitle.template
+      : typeof titleTemplate === 'string'
+        ? titleTemplate
+        : typeof DEFAULT_METADATA.title.template === 'string'
+          ? DEFAULT_METADATA.title.template
+          : '';
     title = {
       default: rawTitle.default,
-      template: rawTitle.template,
+      template: templateValue
     };
-    computedTitle = resolveTemplate(rawTitle.template, {
+    computedTitle = resolveTemplate(templateValue, {
       title: rawTitle.default,
-      siteName: DEFAULT_METADATA.openGraph.siteName,
+      siteName: customOpenGraph.siteName || DEFAULT_METADATA.openGraph.siteName,
     }).trim();
+  } 
+  // Handle titleTemplate
+  else if (titleTemplate) {
+    const defaultTitleValue = typeof rawTitle === 'string' ? rawTitle : defaultTitle || DEFAULT_METADATA.title.default;
+    title = {
+      default: defaultTitleValue,
+      template: typeof titleTemplate === 'string' ? titleTemplate : ''
+    };
+    computedTitle = resolveTemplate(
+      typeof titleTemplate === 'string' ? titleTemplate : '',
+      {
+        title: defaultTitleValue,
+        siteName: customOpenGraph.siteName || DEFAULT_METADATA.openGraph.siteName,
+      }
+    ).trim();
+  } 
+  // Handle string title
+  else if (typeof rawTitle === 'string') {
+    title = rawTitle;
+    computedTitle = rawTitle;
+  } 
+  // Default case
+  else {
+    const defaultTitleValue = defaultTitle || DEFAULT_METADATA.title.default;
+    const template = DEFAULT_METADATA.title.template;
+
+    computedTitle = resolveTemplate(template, {
+      title: defaultTitleValue,
+      siteName: customOpenGraph.siteName || DEFAULT_METADATA.openGraph.siteName,
+    }).trim();
+
+    title = {
+      default: defaultTitleValue,
+      template: template,
+    };
   }
 
+  // Set metadataBase if canonicalUrl is provided
   const metadataBase = canonicalUrl ? new URL(canonicalUrl) : undefined;
 
-  const robotsContent = (() => {
-    if (!robots) return undefined;
+  // Process robots meta tag content
+  const robotsContent = processRobotsDirectives(
+    noindex !== undefined || nofollow !== undefined
+      ? { noindex, nofollow }
+      : robots
+  );
 
-    if (!isRobotsDirectives(robots)) {
-      const parts = [];
-      if ('index' in robots) parts.push(robots.index === false ? 'noindex' : 'index');
-      else parts.push('index');
-      if ('follow' in robots) parts.push(robots.follow === false ? 'nofollow' : 'follow');
-      else parts.push('follow');
-      return parts.join(', ');
-    }
-
-    const parts = [];
-
-    if ('index' in robots) parts.push(robots.index === false ? 'noindex' : 'index');
-    else parts.push('index');
-
-    if ('follow' in robots) parts.push(robots.follow === false ? 'nofollow' : 'follow');
-    else parts.push('follow');
-
-    if (robots.nocache) parts.push('noarchive');
-    if (robots.noimageindex) parts.push('noimageindex');
-    if (robots.nosnippet) parts.push('nosnippet');
-
-    if (robots.googleBot) {
-      const gb = robots.googleBot;
-      if ('index' in gb) parts.push(gb.index === false ? 'noindex' : '');
-      if ('follow' in gb) parts.push(gb.follow === false ? 'nofollow' : '');
-      if (gb.noimageindex) parts.push('noimageindex');
-      if (gb['max-video-preview'] !== undefined)
-        parts.push(`max-video-preview:${gb['max-video-preview']}`);
-      if (gb['max-image-preview'])
-        parts.push(`max-image-preview:${gb['max-image-preview']}`);
-      if (gb['max-snippet'] !== undefined)
-        parts.push(`max-snippet:${gb['max-snippet']}`);
-    }
-
-    return parts.filter(Boolean).join(', ');
-  })();
-
-  const openGraph = {
+  // Process OpenGraph metadata
+  const openGraph = processOpenGraph({
     ...DEFAULT_METADATA.openGraph,
     ...customOpenGraph,
     title: customOpenGraph?.title || computedTitle,
     description: customOpenGraph?.description || description,
     url: customOpenGraph?.url || canonicalUrl,
-  };
+  });
 
-  const rawImages =
-    customTwitter.images ??
-    (typeof (customTwitter as any).image === 'string'
-      ? [(customTwitter as any).image]
-      : DEFAULT_METADATA.twitter.images);
-
-  const twitterImages: TwitterImage[] = Array.isArray(rawImages)
-    ? rawImages.map((img) =>
-        typeof img === 'string' ? { url: img } : img
-      )
-    : typeof rawImages === 'string'
-    ? [{ url: rawImages }]
-    : [];
-
-  const twitter = {
+  // Process Twitter meta tags
+  const twitterMeta = processTwitterMeta({
     ...DEFAULT_METADATA.twitter,
     ...customTwitter,
     title: customTwitter?.title || computedTitle,
     description: customTwitter?.description || description,
-    images: twitterImages,
-  };
+  });
 
-  const generatedMetadata: NextMetadata = {
+  // Process alternates (languages, canonical, etc.)
+  const processedAlternates = processAlternates(alternates);
+
+  // Normalize authors array
+  const processedAuthors: Author[] = Array.isArray(authors)
+    ? authors.map((author) =>
+        typeof author === 'string' ? { name: author } : author
+      )
+    : [];
+
+  // Build the metadata object
+  const generatedMetadata: NextMetadata & { jsonLD?: string } = {
     ...(typeof title === 'string'
       ? { title }
-      : {
-          title: {
-            default: title.default,
-            template: title.template,
-          },
-        }),
+      : title
+        ? { title }
+        : {}),
     description,
     ...(metadataBase && { metadataBase }),
     alternates: {
       ...(canonicalUrl && { canonical: canonicalUrl }),
-      ...alternates,
+      ...processedAlternates,
     },
     ...(keywords?.length ? { keywords: keywords.join(', ') } : {}),
     ...(openGraph ? { openGraph } : {}),
-    ...(twitter ? { twitter } : {}),
     ...(robotsContent ? { robots: robotsContent } : {}),
     ...(verification ? { verification } : {}),
-    ...(schemaOrgJSONLD ? { metadata: { jsonLd: schemaOrgJSONLD } } : {}),
     ...(pagination
       ? {
           pagination: {
-            previous: pagination.prev ?? undefined,
-            next: pagination.next ?? undefined,
+            previous: pagination?.prev ?? undefined,
+            next: pagination?.next ?? undefined,
           },
         }
       : {}),
@@ -178,31 +197,85 @@ export const Metadata = (
             : themeColor,
         }
       : {}),
-    ...(authors ? { authors } : {}),
+    authors: processedAuthors,
     ...(publisher ? { publisher } : {}),
   };
 
-  if (additionalMetaTags.length || preloadAssets.length) {
-    const otherMeta: Record<string, string> = {};
+  // Add Facebook appId to 'other' meta if present
+  if (facebook?.appId) {
+    const additions: OtherDict = {
+      'fb:app_id': String(facebook.appId),
+    };
+    generatedMetadata.other = mergeOtherMeta(generatedMetadata.other, additions);
+  }
 
+  // Add Twitter meta tags to 'other'
+  const twitterMetaOther: OtherDict = {};
+  Object.entries(twitterMeta).forEach(([key, value]) => {
+    twitterMetaOther[key] = value;
+  });
+  generatedMetadata.other = mergeOtherMeta(generatedMetadata.other, twitterMetaOther);
+
+  // Add additionalMetaTags, additionalLinkTags, and preloadAssets to 'other'
+  if (
+    additionalMetaTags.length ||
+    additionalLinkTags.length ||
+    preloadAssets.length
+  ) {
+    const otherMeta: OtherDict = {};
+
+    // Add additional meta tags
     additionalMetaTags.forEach((tag) => {
       const key = tag.name || tag.property || tag.httpEquiv || '';
       if (key && tag.content) {
-        otherMeta[key] = tag.content;
+        if (key.toLowerCase() === 'robots') {
+          otherMeta['robots'] = tag.content;
+        } else {
+          otherMeta[`meta::${key}`] = { ...tag };
+        }
       }
     });
 
+    // Add additional link tags
+    additionalLinkTags.forEach((tag) => {
+      const linkKey = `link::${tag.rel}::${tag.href}`;
+      otherMeta[linkKey] = {
+        rel: tag.rel,
+        href: tag.href,
+        ...(tag.as && { as: tag.as }),
+        ...(tag.crossOrigin && { crossOrigin: tag.crossOrigin }),
+        ...(tag.media && { media: tag.media }),
+        ...(tag.type && { type: tag.type }),
+        ...(tag.sizes && { sizes: tag.sizes }),
+      };
+    });
+
+    // Add preload assets
     preloadAssets.forEach((asset) => {
       const preloadKey = `preload::${asset.href}`;
-      otherMeta[preloadKey] = JSON.stringify({
+      otherMeta[preloadKey] = {
         rel: 'preload',
         href: asset.href,
         as: asset.as,
         ...(asset.crossOrigin && { crossOrigin: asset.crossOrigin }),
-      });
+      };
     });
 
-    generatedMetadata.other = otherMeta;
+    generatedMetadata.other = mergeOtherMeta(generatedMetadata.other, otherMeta);
+  }
+
+  // Add Apple Web App meta tags to 'other'
+  if (appleWebApp) {
+    const { title: appleTitle, capable } = appleWebApp;
+    const additions: OtherDict = {};
+    if (capable !== undefined) additions['apple-mobile-web-app-capable'] = capable ? 'yes' : 'no';
+    if (appleTitle) additions['apple-mobile-web-app-title'] = appleTitle;
+    generatedMetadata.other = mergeOtherMeta(generatedMetadata.other, additions);
+  }
+
+  // Add JSON-LD schema if provided
+  if (schemaOrgJSONLD !== undefined) {
+    generatedMetadata.jsonLD = generateJsonLD(schemaOrgJSONLD);
   }
 
   return generatedMetadata;
