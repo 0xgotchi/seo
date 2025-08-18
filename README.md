@@ -3,6 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/amphibian-seo.svg)](https://www.npmjs.com/package/amphibian-seo)
 
+[GitHub Repository](https://github.com/HorrorAmphibian/amphibian-seo)
+
 A modern SSR-first SEO metadata toolkit for Next.js App Router. Supports OpenGraph, Twitter Cards, robots, alternates, JSON-LD, preload, meta/link tags, Apple Web App, and advanced TypeScript types. Fully compatible with Next.js’s `generateMetadata` API and static rendering.
 
 ---
@@ -42,10 +44,10 @@ pnpm add amphibian-seo
 
 ```tsx
 // app/layout.tsx
-import { Metadata } from 'amphibian-seo';
+import { metadata } from 'amphibian-seo';
 
 export function generateMetadata() {
-  return Metadata({
+  return metadata({
     title: {
       default: 'My Site',
       template: '%title% | My Site',
@@ -74,7 +76,7 @@ export const metadata = {
 
 ### Main Function
 
-#### `Metadata(input: MetadataInput): NextMetadata & { jsonLD?: string }`
+#### `metadata(input: MetadataInput): NextMetadata & { jsonLD?: string }`
 
 Generates Next.js-compatible metadata from your input.
 

@@ -36,9 +36,9 @@ export const DEFAULT_METADATA = {
     title: 'Welcome to My Website',
     description: 'Discover great articles and insights on My Website.',
     image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-    site: '',      // Twitter @site handle
-    creator: '',   // Twitter @creator handle
-    handle: '',    // Twitter handle (optional)
+    site: '@mywebsite',      // Twitter @site handle
+    creator: '@horror_amphibian',   // Twitter @creator handle
+    handle: '@mywebsite',    // Twitter handle (optional)
   },
 
   // Default robots directives for search engines

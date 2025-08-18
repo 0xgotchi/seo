@@ -1,4 +1,4 @@
-import { Metadata } from '../generateMetadata';
+import { metadata } from '../generateMetadata';
 import { DEFAULT_METADATA } from '../../constants';
 import { MetadataInput } from '../../types';
 import * as generateJsonLDModule from '../utils/processJsonLD';
@@ -12,18 +12,18 @@ describe('Metadata', () => {
   // TITLE
   // ------------------------------
   it('should return default title if not provided', () => {
-    const result = Metadata({});
+    const result = metadata({});
     expect(result.title).toBeDefined();
     expect(result.title).toEqual(DEFAULT_METADATA.title);
   });
 
   it('should apply a simple title', () => {
-    const result = Metadata({ title: 'Test Page' });
+    const result = metadata({ title: 'Test Page' });
     expect(result.title).toBe('Test Page');
   });
 
   it('should apply titleTemplate with defaultTitle', () => {
-    const result = Metadata({
+    const result = metadata({
       defaultTitle: 'Home',
       titleTemplate: '%s | My Site',
     });
@@ -31,7 +31,7 @@ describe('Metadata', () => {
   });
 
   it('should apply titleTemplate using provided title', () => {
-    const result = Metadata({
+    const result = metadata({
       title: 'Test Page',
       titleTemplate: '%s | My Site'
     });
@@ -42,7 +42,7 @@ describe('Metadata', () => {
   // DESCRIPTION
   // ------------------------------
   it('should process description', () => {
-    const result = Metadata({ description: 'Test description' });
+    const result = metadata({ description: 'Test description' });
     expect(result.description).toBe('Test description');
   });
 
@@ -50,12 +50,12 @@ describe('Metadata', () => {
   // ROBOTS
   // ------------------------------
   it('should process basic robots', () => {
-    const result = Metadata({ noindex: true, nofollow: true });
+    const result = metadata({ noindex: true, nofollow: true });
     expect(result.robots).toBe('noindex, nofollow');
   });
 
   it('should process advanced robots', () => {
-    const result = Metadata({
+    const result = metadata({
       robots: {
         index: false,
         follow: true,
@@ -90,7 +90,7 @@ describe('Metadata', () => {
   });
 
   it('should process advanced robots without googleBot', () => {
-    const result = Metadata({
+    const result = metadata({
       robots: {
         index: false,
         follow: true,
@@ -120,12 +120,12 @@ describe('Metadata', () => {
         }
       ]
     };
-    const result = Metadata({ openGraph: ogData });
+    const result = metadata({ openGraph: ogData });
     expect(result.openGraph).toMatchObject(ogData);
   });
 
   it('should process OpenGraph with minimal data', () => {
-    const result = Metadata({ openGraph: { title: 'OG Title' } });
+    const result = metadata({ openGraph: { title: 'OG Title' } });
     expect(result.openGraph?.title).toBe('OG Title');
   });
 
@@ -133,7 +133,7 @@ describe('Metadata', () => {
   // TWITTER
   // ------------------------------
   it('should process Twitter with string image', () => {
-    const result = Metadata({
+    const result = metadata({
       twitter: {
         card: 'summary_large_image',
         image: 'https://site.com/img.png',
@@ -149,7 +149,7 @@ describe('Metadata', () => {
       width: 1200,
       height: 600
     };
-    const result = Metadata({
+    const result = metadata({
       twitter: {
         card: 'summary',
         image: img,
@@ -160,7 +160,7 @@ describe('Metadata', () => {
   });
 
   it('should process Twitter with default values', () => {
-    const result = Metadata({});
+    const result = metadata({});
     expect(result.other?.['twitter:card']).toBe('summary_large_image');
     expect(result.other?.['twitter:title']).toBe(DEFAULT_METADATA.twitter.title);
     expect(result.other?.['twitter:description']).toBe(DEFAULT_METADATA.twitter.description);
@@ -168,7 +168,7 @@ describe('Metadata', () => {
   });
 
   it('should use defaults for Twitter when values are empty', () => {
-    const result = Metadata({ twitter: {} });
+    const result = metadata({ twitter: {} });
     expect(result.other?.['twitter:card']).toBe('summary_large_image');
   });
 
@@ -182,7 +182,7 @@ describe('Metadata', () => {
         en: 'https://site.com/en' 
       },
     };
-    const result = Metadata({ alternates });
+    const result = metadata({ alternates });
     expect(result.alternates?.languages).toEqual(alternates.languages);
   });
 
@@ -194,7 +194,7 @@ describe('Metadata', () => {
       google: '123',
       facebook: '456'
     };
-    const result = Metadata({ verification });
+    const result = metadata({ verification });
     expect(result.verification).toEqual(verification);
   });
 
@@ -210,7 +210,7 @@ describe('Metadata', () => {
       name: 'Test',
       datePublished: '2023-01-01'
     };
-    const resultObj = Metadata({ schemaOrgJSONLD: schemaObj });
+    const resultObj = metadata({ schemaOrgJSONLD: schemaObj });
     expect(spy).toHaveBeenCalledWith(schemaObj);
     expect(resultObj.jsonLD).toBe(generateJsonLDModule.generateJsonLD(schemaObj));
 
@@ -219,7 +219,7 @@ describe('Metadata', () => {
       { '@type': 'WebSite', name: 'Site 1' },
       { '@type': 'Organization', name: 'Site 2' },
     ];
-    const resultArr = Metadata({ schemaOrgJSONLD: schemaArr });
+    const resultArr = metadata({ schemaOrgJSONLD: schemaArr });
     expect(spy).toHaveBeenCalledWith(schemaArr);
     expect(resultArr.jsonLD).toBe(generateJsonLDModule.generateJsonLD(schemaArr));
   });
@@ -233,7 +233,7 @@ describe('Metadata', () => {
       { name: 'Author 2', url: 'https://a.com' },
       { name: 'Author 3' }
     ];
-    const result = Metadata({ authors });
+    const result = metadata({ authors });
     expect(result.authors).toEqual([
       { name: 'Author 1' },
       { name: 'Author 2', url: 'https://a.com' },
@@ -242,7 +242,7 @@ describe('Metadata', () => {
   });
 
   it('should return empty array for missing authors', () => {
-    const result = Metadata({});
+    const result = metadata({});
     expect(result.authors).toEqual([]);
   });
 
@@ -250,12 +250,12 @@ describe('Metadata', () => {
   // PUBLISHER
   // ------------------------------
   it('should process publisher', () => {
-    const result = Metadata({ publisher: 'Company' });
+    const result = metadata({ publisher: 'Company' });
     expect(result.publisher).toBe('Company');
   });
 
   it('should return undefined publisher if not provided', () => {
-    const result = Metadata({});
+    const result = metadata({});
     expect(result.publisher).toBeUndefined();
   });
 
@@ -263,7 +263,7 @@ describe('Metadata', () => {
   // FACEBOOK
   // ------------------------------
   it('should process Facebook appId', () => {
-    const result = Metadata({ 
+    const result = metadata({ 
       facebook: { 
         appId: '123456',
         pages: '789'
@@ -273,7 +273,7 @@ describe('Metadata', () => {
   });
 
   it('should not add fb:app_id if not provided', () => {
-    const result = Metadata({ facebook: { pages: '123' } });
+    const result = metadata({ facebook: { pages: '123' } });
     expect(result.other?.['fb:app_id']).toBeUndefined();
   });
 
@@ -281,7 +281,7 @@ describe('Metadata', () => {
   // ADDITIONAL TAGS AND PRELOAD
   // ------------------------------
   it('should process additionalMetaTags, additionalLinkTags, and preloadAssets', () => {
-    const result = Metadata({
+    const result = metadata({
       additionalMetaTags: [
         { name: 'robots', content: 'noindex' },
         { property: 'og:locale', content: 'ru_RU' }
@@ -323,7 +323,7 @@ describe('Metadata', () => {
   });
 
   it('should process empty arrays for additionalMetaTags, additionalLinkTags, and preloadAssets', () => {
-    const result = Metadata({
+    const result = metadata({
       additionalMetaTags: [],
       additionalLinkTags: [],
       preloadAssets: [],
@@ -335,7 +335,7 @@ describe('Metadata', () => {
   // APPLE WEB APP
   // ------------------------------
   it('should process appleWebApp', () => {
-    const result = Metadata({
+    const result = metadata({
       appleWebApp: {
         capable: true,
         title: 'App'
@@ -346,7 +346,7 @@ describe('Metadata', () => {
   });
 
   it('should process partial appleWebApp', () => {
-    const result = Metadata({ appleWebApp: { title: 'App' } });
+    const result = metadata({ appleWebApp: { title: 'App' } });
     expect(result.other?.['apple-mobile-web-app-title']).toBe('App');
     expect(result.other?.['apple-mobile-web-app-capable']).toBeUndefined();
   });
@@ -355,14 +355,14 @@ describe('Metadata', () => {
   // FORMAT DETECTION
   // ------------------------------
   it('should process formatDetection', () => {
-    const result = Metadata({
+    const result = metadata({
       formatDetection: { email: false, telephone: true, address: false }
     });
     expect(result.formatDetection).toEqual({ email: false, telephone: true, address: false });
   });
 
   it('should process partial formatDetection', () => {
-    const result = Metadata({ formatDetection: { email: false } });
+    const result = metadata({ formatDetection: { email: false } });
     expect(result.formatDetection).toEqual({ email: false });
   });
 });

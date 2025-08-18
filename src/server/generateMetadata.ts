@@ -2,7 +2,6 @@ import { Metadata as NextMetadata } from 'next';
 import {
   MetadataInput,
   Author,
-  SchemaJSONLD,
 } from '../types';
 import { DEFAULT_METADATA } from '../constants';
 import { resolveTemplate } from './utils/resolveTemplate';
@@ -33,7 +32,7 @@ function mergeOtherMeta(
  * @param metadata The input metadata object.
  * @returns The processed metadata object, ready for Next.js.
  */
-export const Metadata = (
+export const metadata = (
   metadata: MetadataInput
 ): NextMetadata & { jsonLD?: string } => {
   // Destructure and set defaults

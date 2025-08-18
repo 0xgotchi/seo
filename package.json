@@ -1,6 +1,6 @@
 {
   "name": "amphibian-seo",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Modern SSR-first SEO metadata toolkit for Next.js App Router. Supports OpenGraph, Twitter Cards, robots, alternates, JSON-LD, preload, meta/link tags, Apple Web App, and advanced TypeScript types. Fully compatible with generateMetadata and static rendering.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -74,5 +74,9 @@
     "react-dom"
   ],
   "author": "horror_amphibian",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HorrorAmphibian/amphibian-seo"
+  }
 }
