@@ -3,3 +3,5 @@ package-lock.json
 jest.config.js
 __tests__/
 dist/
+README.md
+LICENSE
