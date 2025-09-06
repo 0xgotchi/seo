@@ -1,9 +1,10 @@
 import { SchemaJSONLD } from '../../types';
 
 /**
- * Converts a JSON-LD object or array into a string ready for HTML injection.
+ * Converts a JSON-LD object or array into a string for HTML injection.
+ * Used for structured data in SEO (Schema.org).
  * @param schema JSON-LD (object, array, or undefined)
- * @returns JSON-LD string
+ * @returns JSON-LD string for HTML injection.
  */
 export const generateJsonLD = (
   schema?: SchemaJSONLD | SchemaJSONLD[]

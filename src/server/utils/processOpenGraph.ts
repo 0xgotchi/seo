@@ -1,21 +1,23 @@
 /**
- * Processes the openGraph object and returns a shallow copy.
- * Also clones profile, book, and article sub-objects if present.
- * @param openGraph The openGraph input object.
- * @returns A cloned openGraph object or undefined.
+ * Processes the openGraph metadata object and returns a shallow copy.
+ * Ensures sub-objects (profile, book, article) are also cloned to avoid reference issues.
+ * @param openGraph The openGraph input object (may contain profile, book, article sub-objects).
+ * @returns A cloned openGraph object or undefined if input is not provided.
  */
 export function processOpenGraph(openGraph: any): any {
-  if (!openGraph) return undefined; // Return undefined if no openGraph provided
+  // Return undefined if no openGraph provided
+  if (!openGraph) return undefined;
 
   // Shallow clone of openGraph object
   const result = { ...openGraph };
 
-  // Clone profile object if present
+  // Clone profile object if present to avoid mutating original
   if (openGraph.profile) result.profile = { ...openGraph.profile };
-  // Clone book object if present
+  // Clone book object if present to avoid mutating original
   if (openGraph.book) result.book = { ...openGraph.book };
-  // Clone article object if present
+  // Clone article object if present to avoid mutating original
   if (openGraph.article) result.article = { ...openGraph.article };
 
+  // Return the cloned result
   return result;
 }

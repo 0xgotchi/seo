@@ -38,14 +38,15 @@ pnpm add amphibian-seo
 
 ## 🚀 Basic Usage
 
-### Layout-level Metadata (with `generateMetadata`)
+### Layout-level Metadata (with `generateMetadata` and merge)
 
 ```tsx
 // app/layout.tsx
-import { metadata } from 'amphibian-seo';
+import { metadata as amphibianMetadata } from 'amphibian-seo';
 
-export function generateMetadata() {
-  return metadata({
+export function generateMetadata(_, parent) {
+  // parent = child route metadata
+  return amphibianMetadata({
     title: {
       default: 'My Site',
       template: '%title% | My Site',
@@ -53,7 +54,7 @@ export function generateMetadata() {
     description: 'This is my awesome Next.js site',
     canonicalUrl: 'https://example.com',
     // other SEO configurations
-  });
+  }, parent);
 }
 ```
 
@@ -74,9 +75,9 @@ export const metadata = {
 
 ### Main Function
 
-#### `metadata(input: MetadataInput): NextMetadata & { jsonLD?: string }`
+#### `metadata(input: MetadataInput, parent?: NextMetadata): NextMetadata & { jsonLD?: string }`
 
-Generates Next.js-compatible metadata from your input.
+Generates Next.js-compatible metadata from your input, merging layout metadata with child route metadata (if provided).
 
 ---
 
@@ -99,6 +100,12 @@ type MetadataInput = {
   verification?: Verification;
   additionalMetaTags?: AdditionalMetaTag[];
   additionalLinkTags?: AdditionalLinkTag[];
+  customFavicons?: Array<{
+    href: string;
+    rel?: string;
+    type?: string;
+    sizes?: string;
+  }>;
   preloadAssets?: PreloadAsset[];
   schemaOrgJSONLD?: SchemaJSONLD | SchemaJSONLD[];
   pagination?: { next?: string; prev?: string };
@@ -134,7 +141,36 @@ type MetadataInput = {
 
 ---
 
+
 ## 🔧 Configuration Examples
+### Custom Favicons
+
+Add custom favicons using the `customFavicons` property. This allows you to specify multiple favicon formats and sizes for your site:
+
+```ts
+{
+  customFavicons: [
+    { href: '/favicon.ico', rel: 'icon', type: 'image/x-icon' },
+    { href: '/favicon-32x32.png', rel: 'icon', type: 'image/png', sizes: '32x32' },
+    { href: '/apple-touch-icon.png', rel: 'apple-touch-icon', sizes: '180x180' }
+  ]
+}
+```
+
+You can use this property in your layout or page metadata:
+
+```tsx
+export function generateMetadata(_, parent) {
+  return amphibianMetadata({
+    // ...other metadata
+    customFavicons: [
+      { href: '/favicon.ico', rel: 'icon', type: 'image/x-icon' },
+      { href: '/favicon-32x32.png', rel: 'icon', type: 'image/png', sizes: '32x32' },
+      { href: '/apple-touch-icon.png', rel: 'apple-touch-icon', sizes: '180x180' }
+    ]
+  }, parent);
+}
+```
 
 ### Basic Metadata
 
@@ -310,10 +346,10 @@ export const DEFAULT_METADATA = {
     siteName: 'My Website',
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?...',
+        url: 'https://example.com/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'My Website Preview Image',
+        alt: 'Preview of My Website',
       },
     ],
     title: 'Welcome to My Website',
@@ -325,10 +361,10 @@ export const DEFAULT_METADATA = {
     card: 'summary_large_image',
     title: 'Welcome to My Website',
     description: 'Discover great articles and insights on My Website.',
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?...',
-    site: '',
-    creator: '',
-    handle: '',
+    image: 'https://example.com/twitter-image.jpg',
+    site: '@mywebsite',
+    creator: '@creator',
+    handle: '@mywebsite',
   },
   robots: {
     index: true,
@@ -336,10 +372,15 @@ export const DEFAULT_METADATA = {
   },
   mobileApp: {
     appleTouchIcon: '/apple-touch-icon.png',
-    themeColor: '#000000',
-    msapplicationTileColor: '#000000',
+    themeColor: '#ffffff',
+    msapplicationTileColor: '#2b5797',
     appleWebAppCapable: 'yes',
   },
+  customFavicons: [
+    { href: '/favicon.ico', rel: 'icon', type: 'image/x-icon' },
+    { href: '/favicon-32x32.png', rel: 'icon', type: 'image/png', sizes: '32x32' },
+    { href: '/apple-touch-icon.png', rel: 'apple-touch-icon', sizes: '180x180' }
+  ],
 };
 ```
 
@@ -369,7 +410,7 @@ import type {
 
 ## 🧑‍🏫 Best Practices
 
-1. Use layout-level metadata as defaults and override at page level
+1. Use layout-level metadata as defaults and override at page level using automatic merging
 2. Prefer semantic metadata (`title`, `description`, etc.)
 3. Always define canonical URLs to avoid duplicates
 4. Use dynamic title templates for consistency (`%title%`, `%siteName%`)

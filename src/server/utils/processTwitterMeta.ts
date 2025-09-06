@@ -1,10 +1,12 @@
+
 import { TwitterImage } from '../../types';
 
 /**
  * Processes Twitter metadata and returns an object of meta tag key-value pairs.
  * Handles card, site, creator, title, description, and image (string or object).
- * @param twitterData Twitter metadata input.
- * @returns Object with Twitter meta tag keys and values.
+ * Used for generating Twitter meta tags for social sharing.
+ * @param twitterData Twitter metadata input (card, site, creator, title, description, image).
+ * @returns Object with Twitter meta tag keys and values for HTML injection.
  */
 export const processTwitterMeta = (twitterData: {
   card?: string;
@@ -26,17 +28,17 @@ export const processTwitterMeta = (twitterData: {
 
   // Handle Twitter image (can be string or object)
   if (twitterData.image) {
-    // Normalize image to object format
+    // Normalize image to object format for consistent processing
     const image = typeof twitterData.image === 'string' 
       ? { url: twitterData.image } 
       : twitterData.image;
 
-    // Add image URL
+    // Add image URL to meta tags
     metaTags['twitter:image'] = image.url;
     // Add image alt text if present
     if (image.alt) metaTags['twitter:image:alt'] = image.alt;
   }
 
-  // Return the meta tags object
+  // Return the meta tags object for HTML injection
   return metaTags;
 };

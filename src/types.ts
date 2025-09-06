@@ -1,4 +1,7 @@
-// Represents an OpenGraph image object
+/**
+ * Represents an OpenGraph image object for social sharing.
+ * Used in OpenGraph metadata for sharing images on social platforms.
+ */
 export type OpenGraphImage = {
   url: string;
   width?: number;
@@ -7,7 +10,10 @@ export type OpenGraphImage = {
   type?: string;
 };
 
-// Represents an OpenGraph video object
+/**
+ * Represents an OpenGraph video object for social sharing.
+ * Used in OpenGraph metadata for sharing videos on social platforms.
+ */
 export type OpenGraphVideo = {
   url: string;
   width?: number;
@@ -16,10 +22,16 @@ export type OpenGraphVideo = {
   type?: string;
 };
 
-// Allowed Twitter card types
+/**
+ * Allowed Twitter card types for Twitter meta tags.
+ * Used to specify the type of Twitter card for social sharing.
+ */
 export type TwitterCardType = 'summary' | 'summary_large_image' | 'app' | 'player';
 
-// Represents a Twitter image object
+/**
+ * Represents a Twitter image object for Twitter meta tags.
+ * Used in Twitter metadata for sharing images.
+ */
 export type TwitterImage = {
   url: string;
   alt?: string;
@@ -27,7 +39,10 @@ export type TwitterImage = {
   height?: number;
 };
 
-// Represents an additional meta tag for the HTML head
+/**
+ * Represents an additional meta tag for the HTML head.
+ * Used to inject custom meta tags into the document head.
+ */
 export type AdditionalMetaTag = {
   name?: string;
   content?: string;
@@ -36,7 +51,10 @@ export type AdditionalMetaTag = {
   charSet?: string;
 };
 
-// Represents an additional link tag for the HTML head
+/**
+ * Represents an additional link tag for the HTML head.
+ * Used to inject custom link tags (e.g., stylesheets, icons) into the document head.
+ */
 export type AdditionalLinkTag = {
   rel: string;
   href: string;
@@ -47,7 +65,10 @@ export type AdditionalLinkTag = {
   sizes?: string;
 };
 
-// Represents GoogleBot-specific robots directives
+/**
+ * Represents GoogleBot-specific robots directives for advanced SEO control.
+ * Used to fine-tune how GoogleBot crawls and indexes the page.
+ */
 export type RobotsGoogleBot = {
   index?: boolean;
   follow?: boolean;
@@ -62,13 +83,19 @@ export type RobotsGoogleBot = {
   unavailable_after?: string;
 };
 
-// Represents basic robots directives
+/**
+ * Represents basic robots directives for SEO control.
+ * Used for simple index/follow control in robots meta tags.
+ */
 export type RobotsBasicDirectives = {
   noindex?: boolean;
   nofollow?: boolean;
 };
 
-// Represents advanced robots directives
+/**
+ * Represents advanced robots directives for SEO control.
+ * Used for advanced control over indexing, caching, and crawling.
+ */
 export type RobotsAdvancedDirectives = {
   index?: boolean;
   follow?: boolean;
@@ -84,22 +111,34 @@ export type RobotsAdvancedDirectives = {
   googleBot?: RobotsGoogleBot;
 };
 
-// Union type for robots directives
+/**
+ * Union type for robots directives (basic or advanced).
+ * Used to allow both simple and advanced robots meta tag configurations.
+ */
 export type RobotsDirectives = RobotsBasicDirectives | RobotsAdvancedDirectives;
 
-// Represents a language alternate for hreflang tags
+/**
+ * Represents a language alternate for hreflang tags.
+ * Used to specify alternate URLs for different languages.
+ */
 export type LanguageAlternate = {
   hrefLang: string;
   href: string;
 };
 
-// Represents a mobile alternate for media queries
+/**
+ * Represents a mobile alternate for media queries.
+ * Used to specify alternate URLs for mobile devices.
+ */
 export type MobileAlternate = {
   media: string;
   href: string;
 };
 
-// Represents alternates for canonical, languages, media, types, and mobile
+/**
+ * Represents alternates for canonical, languages, media, types, and mobile.
+ * Used to configure alternate URLs for SEO and internationalization.
+ */
 export type Alternates = {
   canonical?: string;
   languages?: Record<string, string> | LanguageAlternate[];
@@ -108,7 +147,10 @@ export type Alternates = {
   mobileAlternate?: MobileAlternate;
 };
 
-// Represents verification meta tags for search engines and social platforms
+/**
+ * Represents verification meta tags for search engines and social platforms.
+ * Used to verify site ownership with search engines and social platforms.
+ */
 export type Verification = {
   google?: string;
   yandex?: string;
@@ -117,14 +159,20 @@ export type Verification = {
   other?: Record<string, string>;
 };
 
-// Represents a Schema.org JSON-LD object
+/**
+ * Represents a Schema.org JSON-LD object for structured data.
+ * Used for structured data markup in SEO.
+ */
 export type SchemaJSONLD = {
   '@context'?: string;
   '@type': string;
   [key: string]: any;
 };
 
-// Represents Twitter meta tags
+/**
+ * Represents Twitter meta tags for social sharing.
+ * Used to configure Twitter card metadata for social sharing.
+ */
 export type Twitter = {
   card?: TwitterCardType;
   site?: string;
@@ -135,7 +183,10 @@ export type Twitter = {
   image?: string | TwitterImage;
 };
 
-// Represents OpenGraph profile object
+/**
+ * Represents OpenGraph profile object for social sharing.
+ * Used in OpenGraph metadata for profile pages.
+ */
 export type OpenGraphProfile = {
   firstName?: string;
   lastName?: string;
@@ -143,7 +194,10 @@ export type OpenGraphProfile = {
   gender?: string;
 };
 
-// Represents OpenGraph book object
+/**
+ * Represents OpenGraph book object for social sharing.
+ * Used in OpenGraph metadata for book pages.
+ */
 export type OpenGraphBook = {
   authors?: string[];
   isbn?: string;
@@ -151,7 +205,10 @@ export type OpenGraphBook = {
   tags?: string[];
 };
 
-// Represents OpenGraph article object
+/**
+ * Represents OpenGraph article object for social sharing.
+ * Used in OpenGraph metadata for article pages.
+ */
 export type OpenGraphArticle = {
   publishedTime?: string;
   modifiedTime?: string;
@@ -161,7 +218,10 @@ export type OpenGraphArticle = {
   tags?: string[];
 };
 
-// Represents the main OpenGraph object
+/**
+ * Represents the main OpenGraph object for social sharing.
+ * Used to configure OpenGraph metadata for social platforms.
+ */
 export type OpenGraph = {
   title?: string;
   description?: string;
@@ -179,13 +239,19 @@ export type OpenGraph = {
   expirationTime?: string;
 };
 
-// Represents an author for articles or metadata
+/**
+ * Represents an author for articles or metadata.
+ * Used to specify authorship in metadata.
+ */
 export type Author = {
   name: string;
   url?: string;
 };
 
-// Represents a preload asset for resource hints
+/**
+ * Represents a preload asset for resource hints.
+ * Used to specify resources to preload for performance.
+ */
 export type PreloadAsset = {
   href: string;
   as: 'script' | 'style' | 'font' | 'image' | 'audio' | 'video' | 'document' | 'fetch';
@@ -193,7 +259,10 @@ export type PreloadAsset = {
   type?: string;
 };
 
-// Main input type for metadata generation
+/**
+ * Main input type for metadata generation. Used to configure all SEO and social meta tags.
+ * This is the main configuration type for the metadata generator function.
+ */
 export type MetadataInput = {
   title?: string | {
     default: string;
@@ -213,6 +282,12 @@ export type MetadataInput = {
   verification?: Verification;
   additionalMetaTags?: AdditionalMetaTag[];
   additionalLinkTags?: AdditionalLinkTag[];
+  customFavicons?: Array<{
+    href: string;
+    rel?: string;
+    type?: string;
+    sizes?: string;
+  }>;
   preloadAssets?: PreloadAsset[];
   schemaOrgJSONLD?: SchemaJSONLD | SchemaJSONLD[];
   pagination?: {

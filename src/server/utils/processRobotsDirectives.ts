@@ -1,9 +1,11 @@
+
 import { RobotsDirectives, RobotsAdvancedDirectives } from '../../types';
 
 /**
  * Type guard to check if the object is RobotsAdvancedDirectives.
+ * Used to distinguish between basic and advanced robots directives.
  * @param obj The object to check.
- * @returns True if obj is RobotsAdvancedDirectives.
+ * @returns True if obj is RobotsAdvancedDirectives, otherwise false.
  */
 function isRobotsAdvancedDirectives(obj: any): obj is RobotsAdvancedDirectives {
   return (
@@ -18,14 +20,15 @@ function isRobotsAdvancedDirectives(obj: any): obj is RobotsAdvancedDirectives {
 
 /**
  * Processes robots directives and returns a string for meta tag usage.
- * Handles both basic and advanced robots directives.
- * @param robots Robots directives input.
- * @returns Robots meta tag string or undefined.
+ * Handles both basic and advanced robots directives, including GoogleBot-specific options.
+ * @param robots Robots directives input (basic or advanced).
+ * @returns Robots meta tag string or undefined if no input is provided.
  */
 export function processRobotsDirectives(robots?: RobotsDirectives): string | undefined {
+  // Return undefined if robots directives are not provided
   if (robots === undefined) return undefined;
 
-  // Basic directives: noindex/nofollow
+  // Handle basic robots directives: noindex/nofollow
   if ('noindex' in robots || 'nofollow' in robots) {
     const parts = [];
     parts.push(robots.noindex ? 'noindex' : 'index');
@@ -33,7 +36,7 @@ export function processRobotsDirectives(robots?: RobotsDirectives): string | und
     return parts.join(', ');
   }
 
-  // Advanced directives
+  // Handle advanced robots directives
   if (isRobotsAdvancedDirectives(robots)) {
     const parts: string[] = [];
 
@@ -51,12 +54,17 @@ export function processRobotsDirectives(robots?: RobotsDirectives): string | und
     // GoogleBot specific directives
     if (robots.googleBot) {
       const gb = robots.googleBot;
+      // GoogleBot index/follow
       if (gb.index === false) parts.push('noindex');
       if (gb.follow === false) parts.push('nofollow');
+      // GoogleBot image indexing
       if (gb.noimageindex) parts.push('noimageindex');
+      // GoogleBot video preview
       if (gb['max-video-preview'] !== undefined)
         parts.push(`max-video-preview:${gb['max-video-preview']}`);
+      // GoogleBot image preview
       if (gb['max-image-preview']) parts.push(`max-image-preview:${gb['max-image-preview']}`);
+      // GoogleBot snippet length
       if (gb['max-snippet'] !== undefined) parts.push(`max-snippet:${gb['max-snippet']}`);
     }
 
@@ -64,6 +72,6 @@ export function processRobotsDirectives(robots?: RobotsDirectives): string | und
     return parts.filter(Boolean).join(', ') || 'index, follow';
   }
 
-  // Default fallback
+  // Default fallback if no directives matched
   return 'index, follow';
 }

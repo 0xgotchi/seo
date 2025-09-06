@@ -1,6 +1,10 @@
 import { processAlternates } from '../utils/processAlternates';
 import { LanguageAlternate } from '../../types';
 
+/**
+ * Test suite for processAlternates utility.
+ * Validates normalization of alternates for languages, canonical, media, types, and mobile.
+ */
 describe('processAlternates', () => {
   it('returns undefined if no alternates are provided', () => {
     expect(processAlternates(undefined)).toBeUndefined();
@@ -12,6 +16,9 @@ describe('processAlternates', () => {
     expect(result.canonical).toBe('https://example.com');
   });
 
+  /**
+   * Should process language alternates and return correct mapping.
+   */
   it('processes languages into an array of objects', () => {
     const input: any = {
       languages: [
@@ -24,12 +31,18 @@ describe('processAlternates', () => {
     expect(result.languages['en-US']).toBe('https://example.com/en');
   });
 
+  /**
+   * Should process canonical alternate and return correct value.
+   */
   it('processes languages already as an object', () => {
     const input = { languages: { 'ru-RU': 'https://example.com/ru' } };
     const result = processAlternates(input);
     expect(result.languages['ru-RU']).toBe('https://example.com/ru');
   });
 
+  /**
+   * Should process media and types alternates and return correct values.
+   */
   it('processes media and types', () => {
     const input = { media: 'screen', types: 'application/json' };
     const result = processAlternates(input);
@@ -37,6 +50,9 @@ describe('processAlternates', () => {
     expect(result.types).toBe('application/json');
   });
 
+  /**
+   * Should process mobileAlternate correctly and return correct values.
+   */
   it('processes mobileAlternate correctly', () => {
     const input = { mobileAlternate: { href: '/m', media: 'only screen' } };
     const result = processAlternates(input);

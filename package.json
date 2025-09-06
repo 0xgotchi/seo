@@ -1,6 +1,6 @@
 {
   "name": "amphibian-seo",
-  "version": "1.2.9",
+  "version": "1.3.2",
   "description": "Modern SSR-first SEO metadata toolkit for Next.js App Router. Supports OpenGraph, Twitter Cards, robots, alternates, JSON-LD, preload, meta/link tags, Apple Web App, and advanced TypeScript types. Fully compatible with generateMetadata and static rendering.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,7 +15,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:verbose": "jest --verbose"
+    "test:verbose": "jest --verbose",
+    "publish": "npm publish --access public"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -77,6 +78,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/HorrorAmphibian/amphibian-seo"
+    "url": "git+https://github.com/HorrorAmphibian/amphibian-seo.git"
   }
 }
