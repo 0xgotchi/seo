@@ -148,7 +148,6 @@
 
   - GitHub Issues: [Report bugs or request features](https://github.com/HorrorAmphibian/amphibian-seo/issues)
   - Discussions: [Join the community](https://github.com/HorrorAmphibian/amphibian-seo/discussions)
-  - Twitter: [@HorrorAmphibian](https://twitter.com/HorrorAmphibian)
 
   ---
 - Supports OpenGraph, Twitter Cards, robots, JSON-LD, Schema.org, Apple Web App, preload, meta/link tags, and more
