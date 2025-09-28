@@ -38,17 +38,17 @@
 
   ### Comparison
 
-  | Feature                | amphibian-seo | next-seo | react-helmet | Custom |  
-  |------------------------|:-------------:|:--------:|:------------:|:------:|
-  | SSR-first              |      ✅       |    ⚠️    |      ❌      |   ⚠️   |
-  | TypeScript types       |      ✅       |    ⚠️    |      ❌      |   ⚠️   |
-  | Plugin system          |      ✅       |    ❌    |      ❌      |   ⚠️   |
-  | Modular                |      ✅       |    ⚠️    |      ⚠️      |   ⚠️   |
-  | Next.js App Router     |      ✅       |    ⚠️    |      ❌      |   ⚠️   |
-  | Static export          |      ✅       |    ⚠️    |      ⚠️      |   ⚠️   |
-  | Security headers       |      ✅       |    ❌    |      ❌      |   ⚠️   |
-  | i18n/hreflang          |      ✅       |    ⚠️    |      ❌      |   ⚠️   |
-  | JSON-LD/schema.org     |      ✅       |    ✅    |      ⚠️      |   ⚠️   |
+  | Feature                | amphibian-seo | next-seo | react-helmet |  
+  |------------------------|:-------------:|:--------:|:------------:|
+  | SSR-first              |      ✅       |    ⚠️    |      ❌      |
+  | TypeScript types       |      ✅       |    ⚠️    |      ❌      |
+  | Plugin system          |      ✅       |    ❌    |      ❌      |
+  | Modular                |      ✅       |    ⚠️    |      ⚠️      |
+  | Next.js App Router     |      ✅       |    ⚠️    |      ❌      |
+  | Static export          |      ✅       |    ⚠️    |      ⚠️      |
+  | Security headers       |      ✅       |    ❌    |      ❌      |
+  | i18n/hreflang          |      ✅       |    ⚠️    |      ❌      |
+  | JSON-LD/schema.org     |      ✅       |    ✅    |      ⚠️      |
 
   ---
 
