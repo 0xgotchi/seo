@@ -1,7 +1,0 @@
-# Ignore test and config files and folders when publishing to npm
-package-lock.json
-jest.config.js
-__tests__/
-dist/
-README.md
-LICENSE

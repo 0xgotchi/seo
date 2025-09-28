@@ -1,433 +1,390 @@
-# Amphibian SEO Metadata Toolkit
+<div align="center">
+  <h1>amphibian-seo</h1>
+  <p><b>SSR-first SEO metadata toolkit for Next.js App Router, with advanced TypeScript types, plugin system, and full static/SSR compatibility.</b></p>
+  <p>
+    <a href="https://www.npmjs.com/package/amphibian-seo"><img src="https://img.shields.io/npm/v/amphibian-seo.svg?style=flat-square" alt="NPM Version"></a>
+    <a href="https://github.com/HorrorAmphibian/amphibian-seo"><img src="https://img.shields.io/github/stars/HorrorAmphibian/amphibian-seo?style=flat-square" alt="GitHub Stars"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="MIT License"></a>
+    <a href="https://github.com/biomejs/biome"><img src="https://img.shields.io/badge/code%20style-biome-5FD3F3?style=flat-square" alt="Biome"></a>
+    <a href="https://github.com/HorrorAmphibian/amphibian-seo/graphs/contributors"><img src="https://img.shields.io/github/contributors/HorrorAmphibian/amphibian-seo?style=flat-square" alt="Contributors"></a>
+  </p>
+</div>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![npm version](https://img.shields.io/npm/v/amphibian-seo.svg)](https://www.npmjs.com/package/amphibian-seo)
 
-A modern SSR-first SEO metadata toolkit for Next.js App Router. Supports OpenGraph, Twitter Cards, robots, alternates, JSON-LD, preload, meta/link tags, Apple Web App, and advanced TypeScript types. Fully compatible with Next.js’s `generateMetadata` API and static rendering.
+## Table of Contents
+  - [Why amphibian-seo?](#why-amphibian-seo)
+  - [Architecture Overview](#architecture-overview)
+  - [Advanced Examples](#advanced-examples)
+  - [Performance & SEO Tips](#performance--seo-tips)
+  - [Contributing](#contributing)
+  - [Changelog](#changelog)
+  - [Community & Support](#community--support)
+
+
+## Features
+- SSR-first: Designed for Next.js App Router and static rendering
+- Full TypeScript support with advanced types and intellisense
+
+  ---
+
+  ## Why amphibian-seo?
+
+  - **SSR-first**: Built for Next.js App Router and static export, not adapted from CSR libraries.
+  - **Type Safety**: All options, plugins, and outputs are fully typed. No `any` or unsafe casts.
+  - **Extensible**: Plugin system lets you add, override, or compose SEO logic for any use case.
+  - **Internationalization**: Supports `hreflang`, alternate URLs, and multi-language metadata.
+  - **Performance**: Minimal runtime, tree-shakable, and zero client-side bundle impact.
+  - **Security**: Built-in support for CSP, X-Frame-Options, and other security headers.
+  - **Modern**: Designed for Next.js 14+, ESM, and the latest web standards.
+
+  ### Comparison
+
+  | Feature                | amphibian-seo | next-seo | react-helmet | Custom |  
+  |------------------------|:-------------:|:--------:|:------------:|:------:|
+  | SSR-first              |      ✅       |    ⚠️    |      ❌      |   ⚠️   |
+  | TypeScript types       |      ✅       |    ⚠️    |      ❌      |   ⚠️   |
+  | Plugin system          |      ✅       |    ❌    |      ❌      |   ⚠️   |
+  | Modular                |      ✅       |    ⚠️    |      ⚠️      |   ⚠️   |
+  | Next.js App Router     |      ✅       |    ⚠️    |      ❌      |   ⚠️   |
+  | Static export          |      ✅       |    ⚠️    |      ⚠️      |   ⚠️   |
+  | Security headers       |      ✅       |    ❌    |      ❌      |   ⚠️   |
+  | i18n/hreflang          |      ✅       |    ⚠️    |      ❌      |   ⚠️   |
+  | JSON-LD/schema.org     |      ✅       |    ✅    |      ⚠️      |   ⚠️   |
+
+  ---
+
+  ## Architecture Overview
+
+  The toolkit is organized in a modular way:
+
+  - **Core**: `generateMetadata`, type definitions, and default logic
+  - **Features**: SEO, OpenGraph, Twitter, robots, JSON-LD, Schema.org, PWA, security, etc.
+  - **Plugins**: Register and compose custom logic
+  - **Utils**: Helpers for merging, validation, and normalization
+  - **Tests**: All features covered by Jest
+
+  Each feature is isolated and can be extended or replaced via plugins.
+
+  ---
+
+  ## Advanced Examples
+
+  ### Dynamic SSR Metadata
+
+  ```ts
+  import { generateMetadata } from "amphibian-seo";
+
+  export async function generateMetadataForPage(params) {
+    const data = await fetchPageData(params.id);
+    return generateMetadata({
+      title: data.title,
+      description: data.summary,
+      openGraph: {
+        title: data.title,
+        url: `https://mysite.com/page/${params.id}`,
+        images: [{ url: data.ogImage }],
+      },
+      jsonLd: [{ "@type": "Article", headline: data.title }],
+    });
+  }
+  ```
+
+  ### Internationalization (hreflang)
+
+  ```ts
+  const meta = generateMetadata({
+    title: "Página Inicial",
+    description: "Bem-vindo ao site",
+    additionalLinkTags: [
+      { rel: "alternate", href: "https://mysite.com/en", hreflang: "en" },
+      { rel: "alternate", href: "https://mysite.com/pt", hreflang: "pt" },
+    ],
+  });
+  ```
+
+  ### Real Plugin Example
+
+  ```ts
+  import { registerPlugin } from "amphibian-seo";
+
+  registerPlugin((options) => {
+    if (options.title) {
+      return { title: options.title + " | MySite" };
+    }
+    return {};
+  });
+  ```
+
+  ---
+
+  ## Performance & SEO Tips
+  - Use unique, descriptive titles and meta descriptions for every page.
+  - Always set canonical URLs to avoid duplicate content.
+  - Use JSON-LD for articles, products, and organizations for rich results.
+  - Prefer static generation for public pages when possible.
+  - Validate with [Lighthouse](https://web.dev/measure/) and [Google Rich Results Test](https://search.google.com/test/rich-results).
+  - Use the plugin system to enforce branding or compliance rules.
+  - Keep robots and security headers up to date.
+
+  ---
+
+  ## Contributing
+
+  Contributions are welcome! To contribute:
+
+  1. Fork the repo and create a new branch.
+  2. Run `npm install` and `npm run lint` to check code style (Biome).
+  3. Add or update tests in `tests/` and run `npm test`.
+  4. Open a pull request with a clear description.
+
+  ### Guidelines
+  - Use TypeScript and keep all code type-safe.
+  - Follow the modular structure (one feature per file/module).
+  - Write and update tests for all changes.
+  - Use English for all code, comments, and docs.
+
+  ---
+
+  ## Changelog
+
+  See [CHANGELOG.md](CHANGELOG.md) for release notes and breaking changes.
+
+  ---
+
+  ## Community & Support
+
+  - GitHub Issues: [Report bugs or request features](https://github.com/HorrorAmphibian/amphibian-seo/issues)
+  - Discussions: [Join the community](https://github.com/HorrorAmphibian/amphibian-seo/discussions)
+  - Twitter: [@HorrorAmphibian](https://twitter.com/HorrorAmphibian)
+
+  ---
+- Supports OpenGraph, Twitter Cards, robots, JSON-LD, Schema.org, Apple Web App, preload, meta/link tags, and more
+- Granular robots/crawlers control
+- Mobile and PWA optimizations
+- Plugin system for custom SEO logic
+- Easy fallback and defaulting for required fields
+- Simple integration with generateMetadata and static export
+- Extensible and modular architecture
 
 ---
 
-## ✨ Key Features
-
-* 🚀 SSR-first, built for Next.js App Router
-* 📝 TypeScript-first with comprehensive type definitions
-* 🔍 Supports all major SEO tags, OpenGraph, and Twitter Cards
-* 🤖 Fine-grained control over robots and crawlers (including GoogleBot)
-* 🖼️ Rich social media metadata support
-* 📱 Mobile app optimizations (icons, theme colors, viewport, etc.)
-* 🛡️ Configurable security meta tags
-* 🏷️ Easy Schema.org JSON-LD integration
-* 🔗 Canonical URLs and alternates management (hreflang, media, types, mobile)
-* ⚡ Asset preload for performance improvements
-* 🧩 Flexible dynamic title templates like `%title%`, `%siteName%`
-* 🧑‍💻 Full support for authors, publisher, verification, and more
-
----
-
-## 📦 Installation
+## Installation
 
 ```bash
 npm install amphibian-seo
 # or
 yarn add amphibian-seo
-# or
-pnpm add amphibian-seo
 ```
 
 ---
 
-## 🚀 Basic Usage
-
-### Layout-level Metadata (with `generateMetadata` and merge)
-
-```tsx
-// app/layout.tsx
-import { metadata as amphibianMetadata } from 'amphibian-seo';
-
-export function generateMetadata(_, parent) {
-  // parent = child route metadata
-  return amphibianMetadata({
-    title: {
-      default: 'My Site',
-      template: '%title% | My Site',
-    },
-    description: 'This is my awesome Next.js site',
-    canonicalUrl: 'https://example.com',
-    // other SEO configurations
-  }, parent);
-}
-```
-
-### Page-level Metadata
-
-```tsx
-// app/page.tsx
-export const metadata = {
-  title: 'Home Page',
-  description: 'Welcome to our homepage',
-  // page-specific SEO configs
-};
-```
-
----
-
-## 📚 API Overview
-
-### Main Function
-
-#### `metadata(input: MetadataInput, parent?: NextMetadata): NextMetadata & { jsonLD?: string }`
-
-Generates Next.js-compatible metadata from your input, merging layout metadata with child route metadata (if provided).
-
----
-
-## 🛠️ MetadataInput Interface
+## Quick Start
 
 ```ts
-type MetadataInput = {
-  title?: string | { default: string; template?: string | ((title?: string) => string) };
-  defaultTitle?: string;
-  titleTemplate?: string | ((title?: string) => string);
+import { generateMetadata } from "amphibian-seo";
+
+const metadata = generateMetadata({
+  title: "My Page",
+  description: "Page description",
+  openGraph: {
+    title: "My Page",
+    url: "https://mysite.com",
+    images: [{ url: "https://mysite.com/og-image.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@mysite",
+  },
+  robots: "index,follow",
+  additionalMetaTags: [
+    { name: "viewport", content: "width=device-width, initial-scale=1" },
+  ],
+  // ...see full SEOOptions below
+});
+```
+
+---
+
+## SEOOptions Reference
+
+The main API is the `SEOOptions` interface, which supports all major SEO, social, and web app fields. Below is a summary of the most important options:
+
+```ts
+interface SEOOptions {
+  title?: string;
   description?: string;
   keywords?: string[];
-  canonicalUrl?: string;
-  noindex?: boolean;
-  nofollow?: boolean;
-  openGraph?: OpenGraph;
-  twitter?: Twitter;
-  robots?: RobotsDirectives;
-  alternates?: Alternates;
-  verification?: Verification;
-  additionalMetaTags?: AdditionalMetaTag[];
-  additionalLinkTags?: AdditionalLinkTag[];
-  customFavicons?: Array<{
-    href: string;
-    rel?: string;
-    type?: string;
-    sizes?: string;
-  }>;
-  preloadAssets?: PreloadAsset[];
-  schemaOrgJSONLD?: SchemaJSONLD | SchemaJSONLD[];
-  pagination?: { next?: string; prev?: string };
-  mobileApp?: {
-    appleTouchIcon?: string;
-    themeColor?: string;
-    msapplicationTileColor?: string;
-    appleWebAppCapable?: boolean | 'yes' | 'no';
-  };
-  securityMetaTags?: Array<{ httpEquiv: string; content: string }>;
-  authors?: (Author | string)[];
+  openGraph?: Record<string, unknown>;
+  twitter?: Record<string, unknown>;
+  robots?: string | Record<string, unknown>;
+  jsonLd?: Array<Record<string, unknown>>;
+  schemaOrgJSONLD?: Record<string, unknown> | Array<Record<string, unknown>>;
+  canonical?: string;
+  additionalMetaTags?: Array<{ name?: string; property?: string; content: string }>;
+  additionalLinkTags?: Array<{ rel: string; href: string; type?: string; sizes?: string }>;
+  customFavicons?: Array<{ href: string; rel?: string; type?: string; sizes?: string }>;
+  icons?: Array<{ rel: string; href: string; sizes?: string; type?: string }>;
+  authors?: Array<{ name: string; url?: string }>;
   publisher?: string;
-  metadataBase?: URL | string;
-  themeColor?: Array<{ media: string; color: string }> | string;
-  viewport?: string;
-  formatDetection?: {
-    telephone?: boolean;
-    date?: boolean;
-    email?: boolean;
-    address?: boolean;
+  copyright?: string;
+  security?: {
+    contentSecurityPolicy?: string;
+    xFrameOptions?: string;
+    xContentTypeOptions?: string;
+    referrerPolicy?: string;
+    metaTags?: Array<{ httpEquiv: string; content: string }>;
   };
-  facebook?: {
-    appId?: string;
-    pages?: string;
-  };
-  appleWebApp?: {
-    capable?: boolean | 'yes' | 'no';
-    title?: string;
-    statusBarStyle?: 'default' | 'black' | 'black-translucent';
-  };
-};
+  // ...many more! See source for full type
+}
 ```
+
+See [`src/index.ts`](src/index.ts) for the full type with all advanced options (PWA, AMP, analytics, web3, local SEO, accessibility, etc).
 
 ---
 
+## Advanced Usage
 
-## 🔧 Configuration Examples
-### Custom Favicons
+### Fallbacks and Defaults
 
-Add custom favicons using the `customFavicons` property. This allows you to specify multiple favicon formats and sizes for your site:
-
-```ts
-{
-  customFavicons: [
-    { href: '/favicon.ico', rel: 'icon', type: 'image/x-icon' },
-    { href: '/favicon-32x32.png', rel: 'icon', type: 'image/png', sizes: '32x32' },
-    { href: '/apple-touch-icon.png', rel: 'apple-touch-icon', sizes: '180x180' }
-  ]
-}
-```
-
-You can use this property in your layout or page metadata:
-
-```tsx
-export function generateMetadata(_, parent) {
-  return amphibianMetadata({
-    // ...other metadata
-    customFavicons: [
-      { href: '/favicon.ico', rel: 'icon', type: 'image/x-icon' },
-      { href: '/favicon-32x32.png', rel: 'icon', type: 'image/png', sizes: '32x32' },
-      { href: '/apple-touch-icon.png', rel: 'apple-touch-icon', sizes: '180x180' }
-    ]
-  }, parent);
-}
-```
-
-### Basic Metadata
+If you omit required fields like `title` or `description`, the toolkit will automatically apply safe defaults:
 
 ```ts
-{
-  title: 'My Page Title',
-  description: 'A detailed description of my page',
-  keywords: ['nextjs', 'seo', 'metadata'],
-  canonicalUrl: 'https://example.com/my-page'
-}
+const meta = generateMetadata({});
+console.log(meta.title); // "Default Title"
+console.log(meta.description); // "Default Description"
 ```
 
-### OpenGraph
+### Custom Meta/Link Tags
 
 ```ts
-{
-  openGraph: {
-    title: 'Social Media Title',
-    description: 'Social Media Description',
-    url: 'https://example.com/social-share',
-    type: 'website',
-    images: [
-      {
-        url: 'https://example.com/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'OpenGraph Image'
-      }
-    ],
-    siteName: 'My Website',
-    locale: 'en_US',
-  }
-}
-```
-
-### Twitter Cards
-
-```ts
-{
-  twitter: {
-    card: 'summary_large_image',
-    site: '@myhandle',
-    creator: '@creator',
-    title: 'Twitter Card Title',
-    description: 'Twitter Card Description',
-    image: 'https://example.com/twitter-image.jpg'
-  }
-}
-```
-
-### Robots Control
-
-```ts
-{
-  robots: {
-    index: true,
-    follow: true,
-    noimageindex: true,
-    nosnippet: true,
-    googleBot: {
-      index: true,
-      follow: false,
-      'max-image-preview': 'large',
-      'max-snippet': 100,
-    }
-  }
-}
-```
-
-### Alternates (hreflang, media, types, mobile)
-
-```ts
-{
-  alternates: {
-    canonical: 'https://example.com',
-    languages: {
-      'en-US': 'https://example.com/en',
-      'ru-RU': 'https://example.com/ru'
-    },
-    media: { 'screen': 'https://example.com/screen' },
-    types: { 'application/json': 'https://example.com/data.json' },
-    mobileAlternate: { href: '/m', media: 'only screen' }
-  }
-}
-```
-
-### Preload Assets
-
-```ts
-{
-  preloadAssets: [
-    { href: '/fonts/my-font.woff2', as: 'font', crossOrigin: 'anonymous' },
-    { href: '/videos/intro.mp4', as: 'video' }
-  ]
-}
-```
-
-### JSON-LD Structured Data
-
-```ts
-{
-  schemaOrgJSONLD: {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "My Website",
-    url: "https://example.com"
-  }
-}
-```
-
-### Mobile App Configuration
-
-```ts
-{
-  mobileApp: {
-    appleTouchIcon: '/apple-touch-icon.png',
-    themeColor: '#ffffff',
-    msapplicationTileColor: '#2b5797'
-  }
-}
-```
-
-### Security Meta Tags
-
-```ts
-{
-  securityMetaTags: [
-    { httpEquiv: 'Content-Security-Policy', content: "default-src 'self'" },
-    { httpEquiv: 'X-Content-Type-Options', content: 'nosniff' }
-  ]
-}
-```
-
-### Authors and Publisher
-
-```ts
-{
-  authors: [
-    'Author 1',
-    { name: 'Author 2', url: 'https://a.com' }
+const meta = generateMetadata({
+  additionalMetaTags: [
+    { name: "theme-color", content: "#fff" },
+    { property: "og:type", content: "website" },
   ],
-  publisher: 'My Publisher'
-}
-```
-
-### Apple Web App
-
-```ts
-{
-  appleWebApp: {
-    capable: true,
-    title: 'App',
-    statusBarStyle: 'black-translucent'
-  }
-}
-```
-
----
-
-## ⚙️ Default Metadata Values
-
-The package provides sensible defaults:
-
-```ts
-export const DEFAULT_METADATA = {
-  title: {
-    default: 'My Website',
-    template: '%title% | My Website',
-  },
-  description: 'This is the best place to find awesome content and resources.',
-  openGraph: {
-    type: 'website',
-    siteName: 'My Website',
-    images: [
-      {
-        url: 'https://example.com/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Preview of My Website',
-      },
-    ],
-    title: 'Welcome to My Website',
-    description: 'This is the best place to find awesome content and resources.',
-    url: 'https://example.com',
-    locale: 'en_US',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Welcome to My Website',
-    description: 'Discover great articles and insights on My Website.',
-    image: 'https://example.com/twitter-image.jpg',
-    site: '@mywebsite',
-    creator: '@creator',
-    handle: '@mywebsite',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  mobileApp: {
-    appleTouchIcon: '/apple-touch-icon.png',
-    themeColor: '#ffffff',
-    msapplicationTileColor: '#2b5797',
-    appleWebAppCapable: 'yes',
-  },
-  customFavicons: [
-    { href: '/favicon.ico', rel: 'icon', type: 'image/x-icon' },
-    { href: '/favicon-32x32.png', rel: 'icon', type: 'image/png', sizes: '32x32' },
-    { href: '/apple-touch-icon.png', rel: 'apple-touch-icon', sizes: '180x180' }
+  additionalLinkTags: [
+    { rel: "canonical", href: "https://mysite.com" },
+    { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
   ],
-};
+});
 ```
 
----
-
-## 🧠 TypeScript Support
-
-You can import types like this:
+### JSON-LD and Schema.org
 
 ```ts
-import type {
-  MetadataInput,
-  OpenGraphImage,
-  Twitter,
-  RobotsDirectives,
-  Alternates,
-  Verification,
-  AdditionalMetaTag,
-  AdditionalLinkTag,
-  PreloadAsset,
-  SchemaJSONLD,
-  Author,
-} from 'amphibian-seo';
+const meta = generateMetadata({
+  jsonLd: [
+    { "@type": "WebSite", url: "https://mysite.com" },
+  ],
+  schemaOrgJSONLD: { "@type": "Organization", name: "My Company" },
+});
+```
+
+### Favicons and Icons
+
+```ts
+const meta = generateMetadata({
+  customFavicons: [
+    { href: "/favicon.ico", rel: "icon", type: "image/x-icon" },
+    { href: "/icon.png", rel: "icon", type: "image/png" },
+  ],
+  icons: [
+    { rel: "apple-touch-icon", href: "/apple.png", sizes: "180x180" },
+  ],
+});
 ```
 
 ---
 
-## 🧑‍🏫 Best Practices
+## Next.js Integration
 
-1. Use layout-level metadata as defaults and override at page level using automatic merging
-2. Prefer semantic metadata (`title`, `description`, etc.)
-3. Always define canonical URLs to avoid duplicates
-4. Use dynamic title templates for consistency (`%title%`, `%siteName%`)
-5. Add preload hints for critical resources to boost performance
-6. Include structured data (JSON-LD) to improve search visibility
-7. Use alternates for internationalization and device targeting
+### App Router (Recommended)
+
+```ts
+// app/layout.tsx or app/page.tsx
+import { generateMetadata } from "amphibian-seo";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = generateMetadata({
+  title: "My Page",
+  description: "Page description",
+  // ...other SEOOptions
+});
+```
+
+### Static Export
+
+You can use the toolkit to generate static meta tags for export or SSG:
+
+```ts
+import { generateMetadata } from "amphibian-seo";
+const meta = generateMetadata({ ... });
+// Render meta tags in your static HTML
+```
 
 ---
 
-## ✅ Compatibility
+## Plugin System
 
-* Next.js 13+ (App Router)
-* React 18+
-* TypeScript 5+
+You can extend or override SEO logic using plugins:
+
+```ts
+import { registerPlugin, applyPlugins } from "amphibian-seo";
+import type { SEOOptions } from "amphibian-seo";
+
+const myPlugin = (options: SEOOptions) => ({
+  title: options.title ? options.title + " | MyBrand" : "MyBrand",
+});
+
+registerPlugin(myPlugin);
+
+const meta = applyPlugins({ title: "Home" });
+// meta.title === "Home | MyBrand"
+```
 
 ---
 
-## 📄 License
+## Testing
 
-MIT © [horror_amphibian](https://github.com/HorrorAmphibian)
+- All core features are covered by Jest tests in the `tests/` folder.
+- To run tests:
+
+```bash
+npm test
+# or
+yarn test
+```
+
+---
+
+## Production Tips
+- Always provide a unique `title` and `description` for each page.
+- Use `canonical` and `hreflang` for international/multilingual sites.
+- Use `jsonLd` and `schemaOrgJSONLD` for rich results and better indexing.
+- Use the plugin system for custom branding or dynamic SEO logic.
+- Validate your output with tools like [Google Rich Results Test](https://search.google.com/test/rich-results).
+
+---
+
+## FAQ
+
+**Q: Is this compatible with Next.js 14+ and the App Router?**
+> Yes! Designed for App Router and works with all modern Next.js versions.
+
+**Q: Can I use this with static export or SSG?**
+> Yes, you can generate static meta tags and JSON-LD for any framework or static site.
+
+**Q: Does it support TypeScript?**
+> 100%. All types are exported and fully documented.
+
+**Q: How do I add custom meta tags?**
+> Use `additionalMetaTags` and `additionalLinkTags` fields in your config.
+
+**Q: Can I extend the toolkit?**
+> Yes, use the plugin system to add or override any logic.
+
+---
+
+## License
+
+MIT
