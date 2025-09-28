@@ -137,3 +137,4 @@ dist
 
 # Ignore test and config files and folders
 package-lock.json
+bun.lock
