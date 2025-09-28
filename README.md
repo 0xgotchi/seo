@@ -17,7 +17,6 @@
   - [Advanced Examples](#advanced-examples)
   - [Performance & SEO Tips](#performance--seo-tips)
   - [Contributing](#contributing)
-  - [Changelog](#changelog)
   - [Community & Support](#community--support)
 
 
@@ -142,12 +141,6 @@
   - Follow the modular structure (one feature per file/module).
   - Write and update tests for all changes.
   - Use English for all code, comments, and docs.
-
-  ---
-
-  ## Changelog
-
-  See [CHANGELOG.md](CHANGELOG.md) for release notes and breaking changes.
 
   ---
 
