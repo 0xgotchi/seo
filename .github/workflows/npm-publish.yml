@@ -1,40 +1,47 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-
-name: Node.js Package
+name: Release / Publish to npm
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
-  id-token: write
   contents: write
+  packages: write
   issues: write
-  pull-requests: write
+  actions: read
 
 jobs:
   release:
     runs-on: ubuntu-latest
-
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # importante para semantic-release ler tags antigas
 
-      - name: Set up Node.js
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24.10.0'
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Configure npm auth
+        run: |
+          if [ -z "${NPM_TOKEN}" ]; then
+            echo "ERROR: NPM_TOKEN is not set. Add NPM_TOKEN in repository secrets."
+            exit 1
+          fi
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          npm whoami || true
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build project
-        run: npx tsc
-
       - name: Run semantic-release
         run: npx semantic-release
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
