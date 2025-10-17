@@ -8,6 +8,9 @@ examples/
 !*.d.ts
 tsconfig.json
 jest.config.cjs
+biome.json
+.gitattributes
+package.json
 
 # Documentation and project files
 .github/
