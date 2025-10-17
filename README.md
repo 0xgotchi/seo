@@ -358,7 +358,3 @@ A: Yes. Use `generateMetadata` and the route `params` or request context for loc
 
 Q: Can I use this with pages/ (Pages Router)?
 A: This toolkit is focused on the App Router (app directory) and Next's `generateMetadata`. For the Pages Router, you would typically use `next/head` or a different runtime approach.
-
----
-
-If anything in this README needs to match exact exported names from the package API, let me know the real exported function names and I will update the examples to match exactly.

@@ -1,7 +1,7 @@
 {
   "name": "@0xgotchi/seo",
-  "version": "1.0.0",
-  "description": "Modern SSR-first SEO metadata toolkit for Next.js App Router.",
+  "version": "1.0.1",
+  "description": "SSR-first SEO metadata toolkit for Next.js App Router — generate meta tags, Open Graph, Twitter Cards and JSON‑LD (Schema.org) compatible with generateMetadata and static rendering.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -20,5 +20,23 @@
   },
   "devDependencies": {
     "typescript": "^5.0.0"
-  }
+  },
+  "keywords": [
+    "seo",
+    "nextjs",
+    "nextjs-app-router",
+    "app-router",
+    "metadata",
+    "generateMetadata",
+    "ssr",
+    "server-side-seo",
+    "static-seo",
+    "json-ld",
+    "schema-org",
+    "opengraph",
+    "twitter-cards",
+    "meta-tags",
+    "typescript",
+    "seo-toolkit"
+  ]
 }
