@@ -1,523 +1,759 @@
-// SSR-first SEO Toolkit for Next.js App Router
+export type AsyncMetadata = Promise<{
+	openGraph?: {
+		images?: Array<{
+			url: string | URL;
+			width?: number;
+			height?: number;
+			alt?: string;
+		}>;
+		videos?: Array<{
+			url: string | URL;
+			width?: number;
+			height?: number;
+			type?: string;
+			alt?: string;
+		}>;
+		audios?: Array<{
+			url: string | URL;
+			type?: string;
+			alt?: string;
+		}>;
+	};
+}>;
 
-export interface SEOOptions {
+export interface OGImage {
+	url: string | URL;
+	width?: number;
+	height?: number;
+	alt?: string;
+}
+
+export interface OGVideo {
+	url: string | URL;
+	width?: number;
+	height?: number;
+	type?: string;
+	alt?: string;
+	secure_url?: string;
+	duration?: number;
+	release_date?: string;
+}
+
+export interface OGAudio {
+	url: string | URL;
+	type?: string;
+	alt?: string;
+	secure_url?: string;
+}
+
+export interface OGDocument {
+	url: string | URL;
+	type?: string;
+	title?: string;
+}
+
+export interface OpenGraphData {
+	title?: string;
+	description?: string;
+	url?: string;
+	siteName?: string;
+	images?: OGImage[];
+	videos?: OGVideo[];
+	audios?: OGAudio[];
+	documents?: OGDocument[];
+	event?: {
+		name?: string;
+		start_time?: string;
+		end_time?: string;
+		location?: string;
+		url?: string;
+	};
+	product?: {
+		name?: string;
+		price?: string;
+		currency?: string;
+		brand?: string;
+		availability?: string;
+		url?: string;
+	};
+	latitude?: number;
+	longitude?: number;
+	article?: {
+		author?: string;
+		published_time?: string;
+		modified_time?: string;
+		section?: string;
+		tag?: string[];
+	};
+	profile?: {
+		first_name?: string;
+		last_name?: string;
+		username?: string;
+		gender?: string;
+	};
+	musicPlaylist?: {
+		creator?: string;
+		song?: Array<{ url: string; title?: string }>;
+	};
+	book?: {
+		author?: string;
+		isbn?: string;
+		release_date?: string;
+	};
+	locale?: string;
+	locale_alternate?: string[];
+	type?: string;
+	fb_pages?: string[];
+	fb_app_id?: string;
+	pin_media?: string;
+	pin_description?: string;
+	linkedin_profile?: string;
+	news_keywords?: string[];
+	publication_date?: string;
+	determiner?: string;
+	accessibilityLabel?: string;
+	accessibilityHint?: string;
+	copyright?: string;
+	license?: string;
+	rating?: string;
+	age_group?: string;
+	estimated_reading_time?: string;
+}
+
+export interface AlternateLinks {
+	canonical?: string;
+	languages?: Record<string, string>;
+	favicons?: Array<{
+		rel: string;
+		href: string;
+		sizes?: string;
+		type?: string;
+	}>;
+	feeds?: Array<{ type: string; href: string }>;
+	appLinks?: Array<{ platform: string; url: string }>;
+	media?: Array<{ media: string; href: string }>;
+	formats?: Array<{ type: string; href: string }>;
+	[key: string]: unknown;
+}
+
+export interface SEOConfig {
 	title?: string;
 	defaultTitle?: string;
 	titleTemplate?: string | ((title?: string) => string);
 	description?: string;
 	keywords?: string[];
-	openGraph?: Record<string, unknown>;
-	twitter?: Record<string, unknown>;
+	siteUrl?: string;
+	openGraph?: OpenGraphData;
+	twitter?: {
+		card?: "summary" | "summary_large_image" | "app" | "player";
+		title?: string;
+		description?: string;
+		creator?: string;
+		site?: string;
+		images?: string | string[];
+		player?: string;
+		player_width?: number;
+		player_height?: number;
+	};
 	robots?: string | Record<string, unknown>;
-	jsonLd?: Array<Record<string, unknown>>;
-	schemaOrgJSONLD?: Record<string, unknown> | Array<Record<string, unknown>>;
-	alternates?: Record<string, unknown>;
-	preload?: string[];
+	alternates?: AlternateLinks;
+	breadcrumbs?: Array<{ name: string; url?: string }>;
+	structuredData?: Array<Record<string, unknown>>;
+	schemaRecipe?: Record<string, unknown>;
+	schemaFAQ?: Record<string, unknown>;
+	schemaProduct?: Record<string, unknown>;
+	schemaEvent?: Record<string, unknown>;
+	schemaReview?: Record<string, unknown>;
+	customMeta?: Array<{ name?: string; property?: string; content: string }>;
+	pwa?: {
+		manifest?: string;
+		themeColor?: string;
+		appleStatusBarStyle?: string;
+		appleMobileWebAppCapable?: boolean;
+	};
+	socialProfiles?: Array<{ network: string; url: string }>;
 	preloadAssets?: Array<{
 		href: string;
 		as?: string;
 		type?: string;
 		crossorigin?: string;
 	}>;
-	preconnect?: string[];
-	meta?: Record<string, string>;
-	additionalMetaTags?: Array<{
-		name?: string;
-		property?: string;
-		content: string;
-	}>;
-	link?: Record<string, string>;
-	additionalLinkTags?: Array<{
-		rel: string;
-		href: string;
-		type?: string;
-		sizes?: string;
-	}>;
-	appleWebApp?: Record<string, unknown>;
-	favicon?: string;
-	customFavicons?: Array<{
-		href: string;
-		rel?: string;
-		type?: string;
-		sizes?: string;
-	}>;
-	icons?: Array<{ rel: string; href: string; sizes?: string; type?: string }>;
 	verification?: Record<string, unknown>;
 	authors?: Array<{ name: string; url?: string }>;
 	publisher?: string;
-	copyright?: string;
-	security?: {
-		contentSecurityPolicy?: string;
-		xFrameOptions?: string;
-		xContentTypeOptions?: string;
-		referrerPolicy?: string;
-		metaTags?: Array<{ httpEquiv: string; content: string }>;
-	};
-	canonical?: string;
-	hreflang?: Array<{ href: string; lang: string }>;
-	accessibility?: {
-		aria?: Record<string, string>;
-		lang?: string;
-	};
-	sitemap?: {
-		enabled?: boolean;
-		urls?: Array<string>;
-	};
-	robotsTxt?: {
-		enabled?: boolean;
-		rules?: Array<string>;
-	};
-	pwa?: {
-		enabled?: boolean;
-		manifest?: Record<string, unknown>;
-		meta?: Record<string, string>;
-	};
-	social?: {
-		facebook?: Record<string, unknown>;
-		linkedin?: Record<string, unknown>;
-		pinterest?: Record<string, unknown>;
-		appId?: string;
-		pages?: string;
-	};
-	amp?: {
-		enabled?: boolean;
-		meta?: Record<string, string>;
-	};
-	media?: {
-		video?: Array<Record<string, unknown>>;
-		audio?: Array<Record<string, unknown>>;
-		image?: Array<Record<string, unknown>>;
-	};
-	structuredData?: {
-		faq?: Array<Record<string, unknown>>;
-		howTo?: Array<Record<string, unknown>>;
-		event?: Array<Record<string, unknown>>;
-	};
-	analytics?: {
-		googleAnalytics?: string;
-		matomo?: string;
-		others?: Array<string>;
-	};
-	consent?: {
-		cookie?: boolean;
-		privacyPolicyUrl?: string;
-	};
-	web3?: {
-		walletConnect?: boolean;
-		blockchainMetadata?: Record<string, unknown>;
-	};
-	localSeo?: {
-		geo?: {
-			latitude?: number;
-			longitude?: number;
-			address?: string;
-			city?: string;
-			region?: string;
-			country?: string;
-			postalCode?: string;
-			openingHours?: string;
-		};
-	};
-	performance?: {
-		webVitals?: boolean;
-		sentry?: boolean;
-		others?: Array<string>;
-	};
-	advancedAccessibility?: {
-		schema?: Record<string, unknown>;
-		screenReader?: boolean;
-	};
-	theme?: {
-		darkMode?: boolean;
-		lightMode?: boolean;
-		dynamic?: boolean;
-		themeColor?: Array<{ media: string; color: string }> | string;
-	};
-	pushNotifications?: {
-		enabled?: boolean;
-		serviceWorker?: string;
-	};
-	hybridApp?: {
-		cordova?: boolean;
-		capacitor?: boolean;
-		meta?: Record<string, unknown>;
-	};
-	conversionTracking?: {
-		facebookPixel?: string;
-		googleAds?: string;
-		others?: Array<string>;
-	};
-	marketplace?: {
-		amazon?: Record<string, unknown>;
-		mercadoLivre?: Record<string, unknown>;
-		others?: Array<Record<string, unknown>>;
-	};
-	reviews?: {
-		rating?: number;
-		count?: number;
-		source?: string;
-	};
-	podcast?: {
-		title?: string;
-		url?: string;
-		episode?: string;
-		author?: string;
-	};
-	book?: {
-		title?: string;
-		author?: string;
-		isbn?: string;
-		url?: string;
-	};
-	course?: {
-		title?: string;
-		provider?: string;
-		url?: string;
-	};
-	voiceAssistant?: {
-		alexa?: boolean;
-		googleAssistant?: boolean;
-		meta?: Record<string, unknown>;
-	};
-	socialAccessibility?: {
-		dynamicAlt?: boolean;
-		imageDescription?: string;
-	};
-	advancedPrivacy?: {
-		optOut?: boolean;
-		gdpr?: boolean;
-		lgpd?: boolean;
-		meta?: Record<string, unknown>;
-	};
-	ai?: {
-		generativePrompts?: Array<string>;
-		contentContext?: string;
-		aiCopyright?: string;
-	};
-	nft?: {
-		enabled?: boolean;
-		collection?: string;
-		tokenId?: string;
-		metadata?: Record<string, unknown>;
-	};
-	gamification?: {
-		achievements?: Array<string>;
-		leaderboards?: Array<{ name: string; score: number }>;
-	};
-	reputation?: {
-		trustpilot?: string;
-		reclameAqui?: string;
-		others?: Array<string>;
-	};
-	offlineTracking?: {
-		qrCode?: string;
-		nfc?: string;
-	};
-	cognitiveAccessibility?: {
-		easyRead?: boolean;
-		autoTranslate?: boolean;
-	};
-	sustainability?: {
-		carbonFootprint?: string;
-		renewableEnergy?: boolean;
-	};
-	advancedSecurity?: {
-		mfa?: boolean;
-		biometrics?: boolean;
-	};
-	payment?: {
-		applePay?: boolean;
-		googlePay?: boolean;
-		pix?: boolean;
-		others?: Array<string>;
-	};
-	governance?: {
-		compliance?: Array<string>;
-		audit?: boolean;
-	};
-	education?: {
-		moodle?: string;
-		coursera?: string;
-		others?: Array<string>;
-	};
-	digitalHealth?: {
-		medicalRecord?: string;
-		telemedicine?: boolean;
-	};
-	logistics?: {
-		deliveryTracking?: string;
-		orderStatus?: string;
-	};
-	crowdsourcing?: {
-		voting?: boolean;
-		userSuggestions?: boolean;
-	};
-	streaming?: {
-		twitch?: string;
-		youtubeLive?: string;
-		others?: Array<string>;
-	};
-	pagination?: { next?: string; prev?: string };
-	metadataBase?: URL | string;
+	metadataBase?: string;
 	viewport?: string;
-	formatDetection?: {
-		telephone?: boolean;
-		date?: boolean;
-		email?: boolean;
-		address?: boolean;
+	formatDetection?: Record<string, unknown>;
+	category?: string;
+	classification?: string;
+	creator?: string;
+	referrer?:
+		| "no-referrer"
+		| "no-referrer-when-downgrade"
+		| "origin"
+		| "origin-when-cross-origin"
+		| "same-origin"
+		| "strict-origin"
+		| "strict-origin-when-cross-origin"
+		| "unsafe-url";
+	colorScheme?:
+		| "normal"
+		| "light"
+		| "dark"
+		| "light dark"
+		| "dark light"
+		| "only light"
+		| "only dark";
+	themeColor?: string | Array<{ media?: string; color: string }>;
+	manifest?: string;
+	itunes?: {
+		appId?: string;
+		appArgument?: string;
 	};
-	appleWebAppStatusBarStyle?: "default" | "black" | "black-translucent";
-	// Melhorias técnicas
-	modules?: Array<string>;
-	generateSitemap?: boolean;
-	generateRobotsTxt?: boolean;
-	devWarnings?: boolean;
-	ciCdIntegration?: boolean;
-	seoMonitoring?: {
+	archives?: string[];
+	assets?: string[];
+	bookmarks?: string[];
+	hreflang?: Array<{ lang: string; href: string }>;
+	runtime?: "edge" | "nodejs";
+	streaming?: {
 		enabled?: boolean;
-		apiKey?: string;
-		provider?: string;
+		priority?: "high" | "normal" | "low";
 	};
-	seoReport?: {
-		autoExport?: boolean;
-		format?: "pdf" | "json" | "csv";
-		destination?: string;
+	experimental?: {
+		ppr?: boolean;
+		serverActions?: boolean;
+		turbopack?: boolean;
 	};
-	// Recursos inovadores
-	webStories?: {
+	loading?: {
+		skeleton?: boolean;
+		suspense?: boolean;
+	};
+	error?: {
+		boundary?: boolean;
+		fallback?: string;
+	};
+	bundleAnalysis?: {
 		enabled?: boolean;
-		structuredData?: Record<string, unknown>;
+		chunks?: string[];
 	};
-	interactiveMedia?: {
-		podcast?: {
-			player?: string;
-			chapters?: Array<{ title: string; start: string }>;
-			transcript?: string;
-		};
-		video?: {
-			player?: string;
-			chapters?: Array<{ title: string; start: string }>;
-			transcript?: string;
-		};
+	rspack?: {
+		optimization?: Record<string, unknown>;
 	};
-	gamificationExtra?: {
-		badges?: Array<string>;
-		ranking?: Array<{ user: string; score: number }>;
-		achievements?: Array<string>;
+	webAssembly?: {
+		enabled?: boolean;
+		modules?: string[];
 	};
-	aiExtra?: {
-		generatedContent?: boolean;
-		transparency?: string;
-		copyright?: string;
+	serviceWorker?: {
+		enabled?: boolean;
+		cacheStrategy?: "networkFirst" | "cacheFirst" | "staleWhileRevalidate";
 	};
-	sustainabilityAdvanced?: {
-		ecoLabels?: Array<string>;
-		practices?: Array<string>;
-	};
-	accessibilityAdvanced?: {
-		voiceNavigation?: boolean;
-		dynamicContrast?: boolean;
-		accessibilityPolicyUrl?: string;
-	};
-	privacyGranular?: {
-		categories?: Array<"analytics" | "marketing" | "functional" | "social">;
-		consentByCategory?: boolean;
-	};
-	marketplaceIntegration?: {
-		googleShopping?: Record<string, unknown>;
-		amazon?: Record<string, unknown>;
-		mercadoLivre?: Record<string, unknown>;
-	};
-	socialCommerce?: {
-		instagramShop?: string;
-		facebookShop?: string;
-		tiktokShop?: string;
-	};
-	// Melhorias e recursos extras
-	validate?: boolean;
-	presets?: "blog" | "product" | "institutional" | "event" | "custom";
-	i18n?: {
-		defaultLocale?: string;
-		locales?: Record<string, Partial<SEOOptions>>;
-	};
-	accessibilityStatement?: {
-		url?: string;
-		description?: string;
-	};
-	consentManagement?: {
-		system?: string;
-		policyUrl?: string;
-		categories?: Array<string>;
-	};
-	appLinks?: {
-		android?: Array<{ url: string; package?: string }>;
-		ios?: Array<{ url: string; appStoreId?: string }>;
-	};
-	socialProof?: {
-		reviews?: Array<{ author: string; rating: number; text?: string }>;
-		testimonials?: Array<{ author: string; text: string }>;
-		trustBadges?: Array<string>;
-	};
-	liveEvents?: {
-		type?: "webinar" | "livestream" | "event";
-		url?: string;
-		startTime?: string;
-		endTime?: string;
-		description?: string;
-	};
-	visualResources?: {
-		images?: Array<{
-			src: string;
-			alt?: string;
-			srcset?: string;
-			sizes?: string;
-			lazy?: boolean;
-		}>;
-	};
-	cognitiveAccessibilityExtra?: {
-		easyRead?: boolean;
-		autoTranslate?: boolean;
-		summary?: string;
-	};
-	sustainabilityExtra?: {
-		carbonFootprint?: string;
-		renewableEnergy?: boolean;
-		sustainabilityPolicyUrl?: string;
-	};
-	advancedSecurityExtra?: {
-		dynamicCSP?: string;
-		securityHeaders?: Record<string, string>;
-	};
-	documentation?: {
-		autoGenerate?: boolean;
-		examples?: Array<string>;
-	};
-	hooks?: {
-		useSEO?: boolean;
-		useMetadata?: boolean;
-	};
-	frameworkCompatibility?: {
-		nuxt?: boolean;
-		svelteKit?: boolean;
-		others?: Array<string>;
-	};
+	other?: Record<string, unknown>;
 }
 
-export function generateMetadata(options: SEOOptions) {
-	// Função base para gerar metadados SEO
-	return {
-		title: options.title || "",
-		defaultTitle: options.defaultTitle || "",
-		titleTemplate: options.titleTemplate || "",
-		description: options.description || "",
-		keywords: options.keywords || [],
-		openGraph: options.openGraph || {},
-		twitter: options.twitter || {},
-		robots: options.robots || "",
-		jsonLd: options.jsonLd || [],
-		schemaOrgJSONLD: options.schemaOrgJSONLD || {},
-		alternates: options.alternates || {},
-		preload: options.preload || [],
-		preloadAssets: options.preloadAssets || [],
-		preconnect: options.preconnect || [],
-		meta: {
-			charset: "utf-8",
-			viewport: "width=device-width, initial-scale=1",
-			themeColor: "#ffffff",
-			...options.meta,
-		},
-		additionalMetaTags: options.additionalMetaTags || [],
-		link: {
-			canonical: options.canonical || "",
-			favicon: options.favicon || "",
-			...options.link,
-		},
-		additionalLinkTags: options.additionalLinkTags || [],
-		appleWebApp: options.appleWebApp || {},
-		customFavicons: options.customFavicons || [],
-		icons: options.icons || [],
-		verification: options.verification || {},
-		authors: options.authors || [],
-		publisher: options.publisher || "",
-		copyright: options.copyright || "",
-		security: options.security || {},
-		hreflang: options.hreflang || [],
-		accessibility: options.accessibility || {},
-		sitemap: options.sitemap || {},
-		robotsTxt: options.robotsTxt || {},
-		pwa: options.pwa || {},
-		social: options.social || {},
-		amp: options.amp || {},
-		media: options.media || {},
-		structuredData: options.structuredData || {},
-		analytics: options.analytics || {},
-		consent: options.consent || {},
-		web3: options.web3 || {},
-		localSeo: options.localSeo || {},
-		performance: options.performance || {},
-		advancedAccessibility: options.advancedAccessibility || {},
-		theme: options.theme || {},
-		appleWebAppStatusBarStyle: options.appleWebAppStatusBarStyle || "default",
-		pushNotifications: options.pushNotifications || {},
-		hybridApp: options.hybridApp || {},
-		conversionTracking: options.conversionTracking || {},
-		marketplace: options.marketplace || {},
-		reviews: options.reviews || {},
-		podcast: options.podcast || {},
-		book: options.book || {},
-		course: options.course || {},
-		voiceAssistant: options.voiceAssistant || {},
-		socialAccessibility: options.socialAccessibility || {},
-		advancedPrivacy: options.advancedPrivacy || {},
-		ai: options.ai || {},
-		nft: options.nft || {},
-		gamification: options.gamification || {},
-		reputation: options.reputation || {},
-		offlineTracking: options.offlineTracking || {},
-		cognitiveAccessibility: options.cognitiveAccessibility || {},
-		sustainability: options.sustainability || {},
-		advancedSecurity: options.advancedSecurity || {},
-		payment: options.payment || {},
-		governance: options.governance || {},
-		education: options.education || {},
-		digitalHealth: options.digitalHealth || {},
-		logistics: options.logistics || {},
-		crowdsourcing: options.crowdsourcing || {},
-		streaming: options.streaming || {},
-		pagination: options.pagination || {},
-		metadataBase: options.metadataBase || "",
-		viewport: options.viewport || "width=device-width, initial-scale=1",
-		formatDetection: options.formatDetection || {},
-		modules: options.modules || [],
-		generateSitemap: options.generateSitemap ?? false,
-		generateRobotsTxt: options.generateRobotsTxt ?? false,
-		devWarnings: options.devWarnings ?? false,
-		ciCdIntegration: options.ciCdIntegration ?? false,
-		seoMonitoring: options.seoMonitoring || {},
-		seoReport: options.seoReport || {},
-		webStories: options.webStories || {},
-		interactiveMedia: options.interactiveMedia || {},
-		gamificationExtra: options.gamificationExtra || {},
-		aiExtra: options.aiExtra || {},
-		sustainabilityAdvanced: options.sustainabilityAdvanced || {},
-		accessibilityAdvanced: options.accessibilityAdvanced || {},
-		privacyGranular: options.privacyGranular || {},
-		marketplaceIntegration: options.marketplaceIntegration || {},
-		socialCommerce: options.socialCommerce || {},
-		validate: options.validate ?? false,
-		presets: options.presets ?? "custom",
-		i18n: options.i18n || {},
-		accessibilityStatement: options.accessibilityStatement || {},
-		consentManagement: options.consentManagement || {},
-		appLinks: options.appLinks || {},
-		socialProof: options.socialProof || {},
-		liveEvents: options.liveEvents || {},
-		visualResources: options.visualResources || {},
-		cognitiveAccessibilityExtra: options.cognitiveAccessibilityExtra || {},
-		sustainabilityExtra: options.sustainabilityExtra || {},
-		advancedSecurityExtra: options.advancedSecurityExtra || {},
-		documentation: options.documentation || {},
-		hooks: options.hooks || {},
-		frameworkCompatibility: options.frameworkCompatibility || {},
+export interface NextJSMetadata {
+	title?: string | { template?: string; default?: string };
+	description?: string;
+	keywords?: string | string[];
+	metadataBase?: URL;
+	openGraph?: OpenGraphData;
+	twitter?: {
+		card?: "summary" | "summary_large_image" | "app" | "player";
+		title?: string;
+		description?: string;
+		creator?: string;
+		site?: string;
+		images?: string | string[];
+		player?: string;
+		player_width?: number;
+		player_height?: number;
 	};
+	robots?: string | Record<string, unknown>;
+	icons?: Array<{ rel: string; url: string; sizes?: string; type?: string }>;
+	alternates?: AlternateLinks;
+	breadcrumbs?: Array<{ name: string; url?: string }>;
+	structuredData?: Array<Record<string, unknown>>;
+	schemaRecipe?: Record<string, unknown>;
+	schemaFAQ?: Record<string, unknown>;
+	schemaProduct?: Record<string, unknown>;
+	schemaEvent?: Record<string, unknown>;
+	schemaReview?: Record<string, unknown>;
+	customMeta?: Array<{ name?: string; property?: string; content: string }>;
+	pwa?: {
+		manifest?: string;
+		themeColor?: string;
+		appleStatusBarStyle?: string;
+		appleMobileWebAppCapable?: boolean;
+	};
+	socialProfiles?: Array<{ network: string; url: string }>;
+	preloadAssets?: Array<{
+		href: string;
+		as?: string;
+		type?: string;
+		crossorigin?: string;
+	}>;
+	verification?: Record<string, unknown>;
+	authors?: Array<{ name: string; url?: string }>;
+	publisher?: string;
+	viewport?: string;
+	formatDetection?: Record<string, unknown>;
+	category?: string;
+	classification?: string;
+	creator?: string;
+	referrer?: SEOConfig["referrer"];
+	colorScheme?: SEOConfig["colorScheme"];
+	themeColor?: SEOConfig["themeColor"];
+	manifest?: string;
+	itunes?: SEOConfig["itunes"];
+	archives?: string[];
+	assets?: string[];
+	bookmarks?: string[];
+	hreflang?: Array<{ lang: string; href: string }>;
+	runtime?: SEOConfig["runtime"];
+	streaming?: SEOConfig["streaming"];
+	experimental?: SEOConfig["experimental"];
+	loading?: SEOConfig["loading"];
+	error?: SEOConfig["error"];
+	bundleAnalysis?: SEOConfig["bundleAnalysis"];
+	rspack?: SEOConfig["rspack"];
+	webAssembly?: SEOConfig["webAssembly"];
+	serviceWorker?: SEOConfig["serviceWorker"];
+	other?: Record<string, unknown>;
+}
+
+function applyFallbacks(options: SEOConfig): SEOConfig {
+	return {
+		...options,
+		title: options.title || options.defaultTitle || "Untitled Page",
+		description: options.description || "Page description",
+		viewport: options.viewport || "width=device-width, initial-scale=1",
+		metadataBase: options.metadataBase ? options.metadataBase : undefined,
+		colorScheme: options.colorScheme || "light dark",
+	} as SEOConfig;
+}
+
+export async function generateNextMetadata(
+	options: SEOConfig,
+	parent?: AsyncMetadata,
+): Promise<NextJSMetadata> {
+	const config = applyFallbacks(options);
+	const previous = parent ? await parent : undefined;
+	const previousImages = previous?.openGraph?.images || [];
+
+	const icons =
+		config.alternates && Array.isArray(config.alternates.favicons)
+			? config.alternates.favicons.map((icon) => ({
+					rel: icon.rel,
+					url: icon.href,
+					sizes: icon.sizes,
+					type: icon.type,
+				}))
+			: undefined;
+
+	const alternates =
+		config.alternates && Object.keys(config.alternates).length > 0
+			? {
+					canonical: config.alternates.canonical,
+					languages: config.alternates.languages,
+					feeds: config.alternates.feeds,
+					appLinks: config.alternates.appLinks,
+					media: config.alternates.media,
+					formats: config.alternates.formats,
+				}
+			: config.hreflang && Array.isArray(config.hreflang)
+				? {
+						languages: config.hreflang.reduce(
+							(acc: Record<string, string>, item) => {
+								acc[item.lang] = item.href;
+								return acc;
+							},
+							{} as Record<string, string>,
+						),
+					}
+				: undefined;
+
+	let resolvedTitle:
+		| string
+		| { template?: string; default?: string }
+		| undefined;
+	if (typeof config.title === "string") {
+		if (typeof config.titleTemplate === "string") {
+			resolvedTitle = config.titleTemplate.replace("%s", config.title);
+		} else if (typeof config.titleTemplate === "function") {
+			try {
+				resolvedTitle = config.titleTemplate(config.title);
+			} catch {
+				resolvedTitle = config.title;
+			}
+		} else {
+			resolvedTitle = config.title;
+		}
+	} else {
+		resolvedTitle = {
+			default: String(config.title || config.defaultTitle || "Default Title"),
+		};
+	}
+
+	const metadata: NextJSMetadata = {
+		title: resolvedTitle,
+		description: config.description,
+		keywords: config.keywords,
+		metadataBase: config.metadataBase
+			? new URL(config.metadataBase)
+			: undefined,
+		openGraph:
+			config.openGraph || previous?.openGraph
+				? {
+						...(previous?.openGraph || {}),
+						...(config.openGraph || {}),
+						images: [
+							...(previousImages || []),
+							...(config.openGraph?.images || []),
+						],
+					}
+				: undefined,
+		twitter: config.twitter,
+		robots: config.robots as string | Record<string, unknown>,
+		icons,
+		alternates,
+		breadcrumbs: config.breadcrumbs,
+		structuredData: config.structuredData,
+		customMeta: config.customMeta,
+		pwa: config.pwa,
+		socialProfiles: config.socialProfiles,
+		verification: config.verification,
+		authors: config.authors,
+		publisher: config.publisher,
+		viewport: config.viewport || "width=device-width, initial-scale=1",
+		formatDetection: config.formatDetection,
+		category: config.category,
+		classification: config.classification,
+		creator: config.creator,
+		referrer: config.referrer,
+		colorScheme: config.colorScheme,
+		themeColor: config.themeColor,
+		manifest: config.manifest,
+		itunes: config.itunes,
+		archives: config.archives,
+		assets: config.assets,
+		bookmarks: config.bookmarks,
+		hreflang: config.hreflang,
+		runtime: config.runtime,
+		streaming: config.streaming,
+		experimental: config.experimental,
+		loading: config.loading,
+		error: config.error,
+		bundleAnalysis: config.bundleAnalysis,
+		rspack: config.rspack,
+		webAssembly: config.webAssembly,
+		serviceWorker: config.serviceWorker,
+		other: config.other,
+	};
+
+	return Object.fromEntries(
+		Object.entries(metadata).filter(([, value]) => value !== undefined),
+	) as NextJSMetadata;
+}
+
+export function generateStaticNextMetadata(options: SEOConfig): NextJSMetadata {
+	const config = applyFallbacks(options);
+
+	const icons =
+		config.alternates && Array.isArray(config.alternates.favicons)
+			? config.alternates.favicons.map((icon) => ({
+					rel: icon.rel,
+					url: icon.href,
+					sizes: icon.sizes,
+					type: icon.type,
+				}))
+			: undefined;
+
+	const alternates =
+		config.alternates && Object.keys(config.alternates).length > 0
+			? {
+					canonical: config.alternates.canonical,
+					languages: config.alternates.languages,
+					feeds: config.alternates.feeds,
+					appLinks: config.alternates.appLinks,
+					media: config.alternates.media,
+					formats: config.alternates.formats,
+				}
+			: undefined;
+
+	const metadata: NextJSMetadata = {
+		title: config.title,
+		description: config.description,
+		keywords: config.keywords,
+		metadataBase: config.metadataBase
+			? new URL(config.metadataBase)
+			: undefined,
+		openGraph: config.openGraph
+			? {
+					...config.openGraph,
+					type: config.openGraph.type || "website",
+				}
+			: undefined,
+		twitter: config.twitter,
+		robots: config.robots as string | Record<string, unknown>,
+		icons,
+		alternates,
+		breadcrumbs: config.breadcrumbs,
+		structuredData: config.structuredData,
+		customMeta: config.customMeta,
+		pwa: config.pwa,
+		socialProfiles: config.socialProfiles,
+		verification: config.verification,
+		authors: config.authors,
+		publisher: config.publisher,
+		viewport: config.viewport || "width=device-width, initial-scale=1",
+	};
+
+	return Object.fromEntries(
+		Object.entries(metadata).filter(([, value]) => value !== undefined),
+	) as NextJSMetadata;
+}
+
+export function generateLayoutNextMetadata(options: SEOConfig): NextJSMetadata {
+	const icons =
+		options.alternates && Array.isArray(options.alternates.favicons)
+			? options.alternates.favicons.map((icon) => ({
+					rel: icon.rel,
+					url: icon.href,
+					sizes: icon.sizes,
+					type: icon.type,
+				}))
+			: undefined;
+
+	const titleValue: NextJSMetadata["title"] =
+		typeof options.titleTemplate === "string"
+			? {
+					template: options.titleTemplate,
+					default: options.defaultTitle || options.title || "Default Title",
+				}
+			: {
+					template:
+						typeof options.titleTemplate === "function"
+							? undefined
+							: `%s | ${options.defaultTitle}`,
+					default: options.defaultTitle || options.title || "Default Title",
+				};
+
+	const metadata: NextJSMetadata = {
+		title: titleValue,
+		description: options.description,
+		keywords: options.keywords,
+		metadataBase: options.metadataBase
+			? new URL(options.metadataBase)
+			: undefined,
+		openGraph: options.openGraph,
+		twitter: options.twitter,
+		robots: options.robots,
+		icons,
+		verification: options.verification,
+		authors: options.authors,
+		publisher: options.publisher,
+		viewport: options.viewport || "width=device-width, initial-scale=1",
+	};
+
+	return Object.fromEntries(
+		Object.entries(metadata).filter(([, value]) => value !== undefined),
+	) as NextJSMetadata;
+}
+
+export async function generateDynamicNextMetadata(
+	params: { [key: string]: string | string[] },
+	options: SEOConfig,
+): Promise<NextJSMetadata> {
+	const dynamicTitle = options.title?.replace(
+		/\{(\w+)\}/g,
+		(_match: string, key: string) =>
+			Array.isArray(params[key])
+				? (params[key] as string[])[0]
+				: (params[key] as string) || _match,
+	);
+
+	const dynamicDescription = options.description?.replace(
+		/\{(\w+)\}/g,
+		(_match: string, key: string) =>
+			Array.isArray(params[key])
+				? (params[key] as string[])[0]
+				: (params[key] as string) || _match,
+	);
+
+	return generateStaticNextMetadata({
+		...options,
+		title: dynamicTitle,
+		description: dynamicDescription,
+	});
+}
+
+interface SEOValidationResult {
+	type: "error" | "warning";
+	field: string;
+	message: string;
+}
+
+export function validateSEOConfig(options: SEOConfig): SEOValidationResult[] {
+	const results: SEOValidationResult[] = [];
+
+	if (!options.title) {
+		results.push({
+			type: "error",
+			field: "title",
+			message: 'The "title" field is required for SEO.',
+		});
+	}
+
+	if (!options.description) {
+		results.push({
+			type: "error",
+			field: "description",
+			message: 'The "description" field is required for SEO.',
+		});
+	}
+
+	if (!options.alternates?.canonical) {
+		results.push({
+			type: "warning",
+			field: "alternates.canonical",
+			message:
+				"It is recommended to define a canonical URL in alternates.canonical.",
+		});
+	}
+
+	if (!options.openGraph) {
+		results.push({
+			type: "warning",
+			field: "openGraph",
+			message: "Consider adding openGraph for better social sharing.",
+		});
+	} else {
+		const og = options.openGraph;
+		if (!og.images || og.images.length === 0) {
+			results.push({
+				type: "warning",
+				field: "openGraph.images",
+				message: "Add at least one image for OpenGraph.",
+			});
+		}
+		if (!og.documents || og.documents.length === 0) {
+			results.push({
+				type: "warning",
+				field: "openGraph.documents",
+				message: "Add documents (PDF, etc) for OpenGraph.",
+			});
+		}
+		if (!og.videos || og.videos.length === 0) {
+			results.push({
+				type: "warning",
+				field: "openGraph.videos",
+				message: "Add videos for OpenGraph.",
+			});
+		}
+		if (!og.audios || og.audios.length === 0) {
+			results.push({
+				type: "warning",
+				field: "openGraph.audios",
+				message: "Add audios for OpenGraph.",
+			});
+		}
+		if (!og.event) {
+			results.push({
+				type: "warning",
+				field: "openGraph.event",
+				message: "Add event info for OpenGraph.",
+			});
+		}
+		if (!og.product) {
+			results.push({
+				type: "warning",
+				field: "openGraph.product",
+				message: "Add product info for OpenGraph.",
+			});
+		}
+		if (typeof og.latitude !== "number" || typeof og.longitude !== "number") {
+			results.push({
+				type: "warning",
+				field: "openGraph.location",
+				message: "Add latitude and longitude for OpenGraph.",
+			});
+		}
+		if (!og.article) {
+			results.push({
+				type: "warning",
+				field: "openGraph.article",
+				message: "Add article info for OpenGraph.",
+			});
+		}
+		if (!og.profile) {
+			results.push({
+				type: "warning",
+				field: "openGraph.profile",
+				message: "Add profile info for OpenGraph.",
+			});
+		}
+		if (!og.musicPlaylist) {
+			results.push({
+				type: "warning",
+				field: "openGraph.musicPlaylist",
+				message: "Add music playlist info for OpenGraph.",
+			});
+		}
+		if (!og.book) {
+			results.push({
+				type: "warning",
+				field: "openGraph.book",
+				message: "Add book info for OpenGraph.",
+			});
+		}
+	}
+
+	if (!options.twitter) {
+		results.push({
+			type: "warning",
+			field: "twitter",
+			message: "Consider adding twitter for social cards.",
+		});
+	}
+
+	if (!options.robots) {
+		results.push({
+			type: "warning",
+			field: "robots",
+			message: "Consider defining robots rules for indexing control.",
+		});
+	}
+
+	if (!options.structuredData) {
+		results.push({
+			type: "warning",
+			field: "structuredData",
+			message: "Add structuredData for advanced SEO and rich snippets.",
+		});
+	}
+
+	if (!options.breadcrumbs) {
+		results.push({
+			type: "warning",
+			field: "breadcrumbs",
+			message: "Add breadcrumbs for improved navigation and SEO.",
+		});
+	}
+
+	if (!options.pwa) {
+		results.push({
+			type: "warning",
+			field: "pwa",
+			message: "Consider configuring pwa for mobile/progressive optimization.",
+		});
+	}
+
+	if (!options.socialProfiles) {
+		results.push({
+			type: "warning",
+			field: "socialProfiles",
+			message: "Add socialProfiles to link social profiles in Schema.org.",
+		});
+	}
+
+	return results;
 }
