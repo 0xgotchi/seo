@@ -109,7 +109,6 @@ tmp/
 temp/
 
 # Package managers lock files
-package-lock.json
 bun.lock
 
 # Node modules and build artifacts
