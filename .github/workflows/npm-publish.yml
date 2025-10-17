@@ -29,7 +29,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm ci
-      - run: bunx tsc
+      - run: npx tsc
 
       - name: Run semantic-release
         run: npx semantic-release
