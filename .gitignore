@@ -117,3 +117,6 @@ dist/
 build/
 lib/
 coverage/
+package-lock.json
+package-lock.json
+*.json
