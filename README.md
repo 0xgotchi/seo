@@ -1,360 +1,346 @@
-# 0xgotchi/seo
+```markdown
+# @0xgotchi/seo
 
-Modern SSR-first SEO metadata toolkit for Next.js App Router.
-Fully compatible with Next.js `generateMetadata`, static rendering, and TypeScript.
+A small utility to produce Next.js App Router compatible `Metadata` objects from a single, friendly SEO configuration object.
 
-This README explains how to install and use the package in your Next.js App Router (app directory) — for both static (exported `metadata`) and dynamic metadata via `generateMetadata`. All examples use TypeScript and assume you are using the Next.js App Router (layout.tsx / page.tsx).
-
-> NOTE: This README shows the recommended integration patterns and example APIs. Replace package import paths with your installed package name if different (e.g. `@0xgotchi/seo`).
+- Works best with Next.js 13+ App Router.
+- Exports a primary helper function named `metadata` (see usage notes about avoiding name collisions when exporting `metadata` from your layout).
+- Use it to centralize SEO configuration and generate `Metadata` for layouts/pages.
 
 ## Table of contents
 
 - Installation
-- Quick start (static metadata in layout.tsx)
-- Dynamic metadata with generateMetadata
-- Full-featured example: blog post layout
-- API (options & types)
-- Open Graph, Twitter Cards, JSON-LD
-- SSR / static rendering notes and best practices
-- Testing & debugging
+- Quick start (App Router)
+- Examples
+  - App Router (metadata.ts)
+  - Using generated metadata in layout.tsx (App Router)
+  - Pages Router (next/head) mapping example
+  - Dynamic metadata and server components
+- Configuration (SeoConfig)
+- API reference
+- TypeScript tips
+- i18n and alternate URLs
+- Favicons & images
+- Custom meta tags
+- Common troubleshooting
+- Testing & verifying metadata
 - Contributing
+- License
+- FAQ
 
 ---
 
 ## Installation
 
-Using npm:
 ```bash
-npm install @0xgotchi/seo
+bun add @0xgotchi/seo
 ```
 
-Using yarn:
-```bash
-yarn add @0xgotchi/seo
-```
 
-Using pnpm:
-```bash
-pnpm add @0xgotchi/seo
-```
-
-(If your package uses a different name on npm, install that package name instead.)
 
 ---
 
-## Quick start — static metadata in layout.tsx
+## Quick start (App Router)
 
-If your site uses mostly static metadata (compile-time), you can export a `metadata` object from a server component (for example `app/layout.tsx`) and Next.js will use it.
+Create a `metadata.ts` file (or any module) and export a `metadata` object compatible with the App Router.
 
-This package provides a small helper `buildSeo` that returns a Next-compatible `Metadata` object. You can also export metadata directly if you prefer.
+Important: this package exports a helper function named `metadata` that converts your friendly SEO config into a Next.js `Metadata` shape. Because Next.js uses the exported identifier `metadata` from a layout file, you should alias the helper on import to avoid a naming collision when you export the final `metadata` value from your module.
 
-Example `app/layout.tsx` (TypeScript server component):
-
-```tsx
-// app/layout.tsx
-import type { ReactNode } from "react";
-import { buildSeo } from "@0xgotchi/seo"; // helper that returns Next Metadata
-
-export const metadata = buildSeo({
-  title: "My Site — Home",
-  description: "Welcome to my site. Fast, accessible and SEO-friendly.",
-  canonical: "https://example.com",
-  openGraph: {
-    title: "My Site",
-    description: "Welcome to my site",
-    url: "https://example.com",
-    images: [{ url: "https://example.com/og-image.png", alt: "My Site" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@mytwitter",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-});
-
-export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
-}
-```
-
-What this does:
-- `buildSeo` returns a Next-compatible `Metadata` object that Next will use for the whole app.
-- Because this is a plain `metadata` export (not `generateMetadata`), Next can statically optimize and embed metadata at build-time.
-
----
-
-## Dynamic metadata with generateMetadata
-
-When metadata depends on route params, server-side data, or other runtime inputs, export `generateMetadata` from your layout or page. `generateMetadata` runs on the server and can be async.
-
-Example: `app/blog/[slug]/layout.tsx`
-
-```tsx
-// app/blog/[slug]/layout.tsx
-import type { Metadata } from "next";
-import { buildSeo } from "@0xgotchi/seo";
-import { getPost } from "@/lib/data";
-
-type Props = {
-  params: { slug: string };
-  children: React.ReactNode;
-};
-
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getPost(params.slug); // fetch post data from CMS or DB
-
-  if (!post) {
-    return buildSeo({
-      title: "Post not found",
-      description: "This post could not be found",
-      robots: { noindex: true, nofollow: true },
-    });
-  }
-
-  return buildSeo({
-    title: post.title,
-    description: post.excerpt,
-    canonical: `https://example.com/blog/${params.slug}`,
-    openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      url: `https://example.com/blog/${params.slug}`,
-      images: [{ url: post.ogImage, alt: post.title }],
-      type: "article",
-      publishedTime: post.publishedAt,
-      authors: post.author ? [post.author.name] : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      creator: post.author?.twitter,
-    },
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      headline: post.title,
-      author: post.author ? { "@type": "Person", name: post.author.name } : undefined,
-      datePublished: post.publishedAt,
-    },
-  });
-}
-
-export default function PostLayout({ children }: Props) {
-  return <article>{children}</article>;
-}
-```
-
-Notes:
-- `generateMetadata` can perform server-side fetches. Because this runs on the server, it’s safe to request private APIs or connect to databases.
-- Returning a `Metadata` object is the recommended approach — this package's helper returns that object shape.
-
----
-
-## Full example: blog post layout + fallback defaults
-
-You typically want global defaults (site-wide) and per-page overrides. Use a small helper to merge defaults with page metadata.
-
-Example `app/layout.tsx` (root):
-
-```tsx
-// app/layout.tsx
-import { buildSeo } from "@0xgotchi/seo";
-
-export const metadata = buildSeo({
-  title: "Example Blog",
-  description: "Thoughts, tutorials, and updates",
-  canonical: "https://example.com",
-  openGraph: {
-    siteName: "Example Blog",
-    images: [{ url: "https://example.com/default-og.png", alt: "Example Blog" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@example",
-  },
-});
-```
-
-Then in a nested `generateMetadata` you can merge defaults with page-specific metadata:
-
-```tsx
-// app/blog/[slug]/layout.tsx
-import type { Metadata } from "next";
-import { buildSeo, mergeSeo } from "@0xgotchi/seo"; // mergeSeo merges defaults and overrides
-import { getPost } from "@/lib/data";
-
-export async function generateMetadata({ params, parent }: { params: { slug: string }; parent: Function }): Promise<Metadata> {
-  const post = await getPost(params.slug);
-  const parentMetadata = await parent(); // parent() returns parent metadata (Next 14+)
-  const pageSeo = buildSeo({
-    title: post.title,
-    description: post.excerpt,
-    openGraph: { images: [{ url: post.ogImage, alt: post.title }] },
-  });
-  return mergeSeo(parentMetadata, pageSeo);
-}
-```
-
-If your runtime of Next supports `parent()` inside `generateMetadata`, prefer merging with the returned parent metadata so you preserve site defaults.
-
----
-
-## API (options & types)
-
-This package is designed to return Next's `Metadata` shape. Common fields you can provide are:
-
-- title: string
-- description: string
-- canonical: string (preferred URL)
-- robots: { index?: boolean; follow?: boolean; noindex?: boolean; nofollow?: boolean; maxSnippet?: number; nosnippet?: boolean }
-- openGraph: {
-  - title?: string
-  - description?: string
-  - url?: string
-  - type?: string (e.g., "website", "article")
-  - images?: Array<{ url: string; alt?: string; width?: number; height?: number }>
-  - publishedTime?: string
-  - authors?: string[]
-  }
-- twitter: { card?: "summary" | "summary_large_image"; site?: string; creator?: string }
-- jsonLd: any (structured data)
-
-Example TypeScript type (illustrative):
-
-```ts
-export type SeoOptions = {
-  title?: string;
-  description?: string;
-  canonical?: string;
-  robots?: {
-    index?: boolean;
-    follow?: boolean;
-  };
-  openGraph?: {
-    title?: string;
-    description?: string;
-    url?: string;
-    images?: { url: string; alt?: string }[];
-    type?: string;
-    publishedTime?: string;
-    authors?: string[];
-  };
-  twitter?: {
-    card?: string;
-    site?: string;
-    creator?: string;
-  };
-  jsonLd?: Record<string, any>;
-};
-```
-
-`buildSeo(options: SeoOptions): Metadata` — returns the Next `Metadata` object.
-
-`mergeSeo(base: Metadata | SeoOptions, override: SeoOptions | Metadata): Metadata` — shallow/meaningful merge of metadata (if supplied by package).
-
-(If your installed package exposes different function names, adapt the snippets accordingly. The conceptual integration remains the same: compute/merge a Next Metadata object and either export it or return it from `generateMetadata`.)
-
----
-
-## Open Graph, Twitter cards, and JSON-LD
-
-- Always provide an OG image (`openGraph.images`) with explicit width/height when possible.
-- Twitter cards use `twitter.card` and prefer `summary_large_image` for large hero images.
-- For structured data (schema.org JSON-LD), use the `jsonLd` field and ensure it's valid JSON-LD. When returning JSON-LD inside metadata, Next will include it in the page head.
-
-Example:
-```ts
-buildSeo({
-  title: "Example Article",
-  openGraph: {
-    type: "article",
-    images: [{ url: "https://example.com/article-og.png", alt: "Article" }],
-    publishedTime: "2025-10-01T12:00:00Z",
-  },
-  jsonLd: {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: "Example Article",
-    datePublished: "2025-10-01",
-    author: { "@type": "Person", name: "Jane Developer" },
-  }
-});
-```
-
----
-
-## SSR, static rendering, and caching considerations
-
-- Static metadata (exported `metadata` constant) allows Next to build or cache pages more aggressively. Use it for pages where metadata doesn't depend on user-specific or frequently changing data.
-- `generateMetadata` runs on the server for each request or according to your caching configuration. You can fetch data there, but be mindful of performance and cache responses (revalidate, stale-while-revalidate, etc.).
-- Avoid performing heavy computations in `generateMetadata`; fetch and compute only what you need for metadata.
-- If your metadata depends on a CMS or third-party API, consider caching that data at the API layer or using Next.js ISR / revalidate strategies.
-
----
-
-## TypeScript support
-
-This toolkit is TypeScript-first. The `buildSeo` helper accepts typed options and returns `next.Metadata` (or compatible shape). Use proper types for your data fetchers:
+Example: Aurora Coffee (file: `app/metadata.ts`)
 
 ```ts
 import type { Metadata } from "next";
-import { buildSeo } from "@0xgotchi/seo";
+// The exported helper is named `metadata`. To avoid colliding with the name
+// Next.js expects (`export const metadata = ...`), import the helper with an alias.
+import { metadata as buildMetadata } from "@0xgotchi/seo";
 
-export async function generateMetadata(): Promise<Metadata> {
-  return buildSeo({ title: "Typed Title" });
-}
-```
+const seoConfig = {
+  title: "Aurora Coffee Co.",
+  description:
+    "Aurora Coffee Co. — specialty coffees, seasonal blends and cozy spaces.",
+  metadataBase: "https://auroracoffee.example",
+  alternates: {
+    canonical: "https://auroracoffee.example/menu/",
+    favicons: [
+      { rel: "icon", href: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  openGraph: {
+    # @0xgotchi/seo
 
----
+    A small utility to produce Next.js App Router compatible Metadata objects from a single, friendly SEO configuration object.
 
-## Testing & debugging
+    This README is aligned with the runtime behavior and TypeScript declarations found in `dist/index.js` and `dist/index.d.ts`.
 
-- To verify the output, render a page locally and inspect the HTML <head>.
-- Use tools such as:
-  - Facebook Open Graph Debugger (Sharing Debugger)
-  - Twitter Card Validator
-  - Google Rich Results Test (for JSON-LD)
-  - Lighthouse (SEO audit)
-- If a field isn't appearing:
-  - Ensure the `metadata` or returned `Metadata` from `generateMetadata` contains the expected fields.
-  - If using nested layouts, check that child `generateMetadata` merges or overrides parent metadata as intended.
-  - For dynamic images, ensure full URLs are used (absolute, publicly reachable).
+    - Works best with Next.js 13+ App Router.
+    - Exports a primary helper function named `metadata` (see usage notes about avoiding name collisions when exporting `metadata` from your layout).
+    - Centralizes SEO configuration and generates `Metadata` objects for layouts/pages (static or dynamic).
 
----
+    ## Table of contents
 
-## Common pitfalls
+    - Installation
+    - Quick start (App Router)
+    - Examples
+      - App Router (metadata.ts)
+      - Using generated metadata in layout.tsx (App Router)
+      - Pages Router (next/head) mapping example
+      - Dynamic metadata and server components
+    - Behavior and edge cases
+    - API reference (functions + types)
+    - Validation helper
+    - Favicons & images
+    - Custom meta tags
+    - Testing & verifying metadata
+    - Contributing
+    - License
 
-- Calling client-only code inside `generateMetadata` will fail — it runs on the server. Use server-safe APIs only.
-- Using relative URLs for OG images may result in incorrect absolute URLs in crawlers. Prefer absolute URLs.
-- Not merging parent metadata when using nested layouts may cause you to lose site-wide defaults.
+    ---
 
----
+    ## Installation
 
-## Contributing
+    ```bash
+    # npm
+    npm install @0xgotchi/seo --save
 
-Contributions, issues, and feature requests welcome. Please open issues or pull requests in this repository. When contributing:
-- Add tests for new functionality where applicable
-- Keep server-side-only code in server components / in `generateMetadata`
-- Follow the repository's code style and lint rules
+    # yarn
+    yarn add @0xgotchi/seo
 
----
+    # pnpm
+    pnpm add @0xgotchi/seo
+    ```
 
-## License
+    ---
 
-Specify license information here (MIT or other — update as appropriate).
+    ## Quick start (App Router)
 
----
+    Create a `metadata.ts` (or `.js`) file and export a `metadata` value compatible with the App Router. The package exports a helper function named `metadata`. Because Next.js also expects an exported identifier named `metadata` from layout files, import the helper with an alias to avoid a naming collision.
 
-## FAQ
+    Example: `app/metadata.ts`
 
-Q: Can I set different metadata per locale?
-A: Yes. Use `generateMetadata` and the route `params` or request context for locale, and return locale-specific metadata.
+    ```ts
+    import type { Metadata } from "next";
+    // import the helper with an alias to avoid colliding with Next's `metadata` export
+    import { metadata as buildMetadata } from "@0xgotchi/seo";
 
-Q: Can I use this with pages/ (Pages Router)?
-A: This toolkit is focused on the App Router (app directory) and Next's `generateMetadata`. For the Pages Router, you would typically use `next/head` or a different runtime approach.
+    const seoConfig = {
+      title: "Aurora Coffee Co.",
+      description: "Aurora Coffee Co. — specialty coffees, seasonal blends and cozy spaces.",
+      metadataBase: "https://auroracoffee.example",
+      alternates: {
+        canonical: "https://auroracoffee.example/menu/",
+        favicons: [
+          { rel: "icon", href: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+          { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+        ],
+      },
+      openGraph: {
+        title: "Menu — Aurora Coffee Co.",
+        description: "Check out our seasonal lattes and single-origin pour-overs.",
+        url: "https://auroracoffee.example/menu/",
+        siteName: "Aurora Coffee Co.",
+        type: "website",
+        locale: "en_US",
+        images: [
+          {
+            url: "https://auroracoffee.example/assets/og-menu.jpg",
+            alt: "Aurora Coffee Co. menu and coffee cups",
+            width: 1200,
+            height: 630,
+            type: "image/jpeg",
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        site: "@auroracoffee",
+      },
+      customMeta: [
+        { name: "theme-color", content: "#7A4A2B" },
+        { name: "robots", content: "index, follow" },
+      ],
+    };
+
+    // buildMetadata (helper) returns an object shaped for Next.js Metadata
+    export const metadata: Metadata = buildMetadata(seoConfig as any) as unknown as Metadata;
+
+    export default metadata;
+    ```
+
+    ---
+
+    ## Behavior and edge cases
+
+    This section documents precise runtime behavior implemented in `dist/index.js` and typed in `dist/index.d.ts`.
+
+    - Title resolution
+      - If `title` is a string:
+        - and `titleTemplate` is a string: the helper replaces the first occurrence of `%s` with the title.
+        - and `titleTemplate` is a function: the helper calls it with the title; if the function throws, it falls back to the original `title`.
+      - If `title` is not a string, the helper returns a `title` object with a `default` property set to the string coercion of `title || defaultTitle || "Default Title"`.
+
+    - Favicons normalization
+      - Favicons are accepted in three places (preference order): `alternates.favicons` (preferred, an array), `alternates.favicon` (single object), and a top-level `favicon` (single object). The helper normalizes these to the `icons` array in the produced metadata where each icon becomes { rel, url, sizes, type } and `href` is mapped to `url`.
+
+    - Alternates
+      - If `alternates` is present and has keys, it's passed through to the returned metadata as `alternates` with the following fields preserved when present: `canonical`, `languages`, `feeds`, `appLinks`, `media`, `formats`.
+      - If `alternates` is not present but a top-level `hreflang` array exists, the helper will convert it to an `alternates.languages` mapping where each item with { lang, href } becomes languages[lang] = href.
+
+    - Open Graph merging (generateNextMetadata)
+      - `generateNextMetadata(options, parent)` applies fallbacks first. If `parent` metadata is provided (an AsyncMetadata promise), it awaits it and merges `openGraph` objects. The merge preserves properties from both and concatenates `images` arrays (parent images first, then config images).
+      - For `generateStaticNextMetadata(options)` there is no parent merge; if `openGraph.type` is not set, it defaults to `website`.
+
+    - Twitter images fallback
+      - If twitter.images is not provided, the helper will fallback to openGraph images (mapped to their `url` strings) when available.
+
+    - Dynamic metadata generation
+      - `generateDynamicNextMetadata(params, options)` replaces placeholders like `{key}` in `title` and `description` using `params` values. If `params[key]` is an array, the first element is used. If the placeholder has no matching param, it is left unchanged.
+
+    - Validation
+      - `validateSEOConfig(options)` returns an array of validation results with shape { type: "error" | "warning", field: string, message: string }.
+      - It treats `title` and `description` as required and will push `error` entries if missing.
+      - It emits many `warning` entries for optional but recommended fields (openGraph, twitter, robots, structuredData, breadcrumbs, pwa, socialProfiles, etc.). For `openGraph` it also warns on many subfields if they are missing (images, documents, videos, audios, event, product, location lat/long, article, profile, musicPlaylist, book).
+
+    ---
+
+    ## API reference (matching dist/index.d.ts)
+
+    This section mirrors the public types and functions exported by the package. The text below is a human-friendly summary — rely on `dist/index.d.ts` for exact types.
+
+    Primary types (high level):
+
+    - SEOConfig: the input configuration object accepted by helpers. It contains top-level fields such as `title`, `defaultTitle`, `titleTemplate`, `description`, `keywords`, `metadataBase`, `openGraph`, `twitter`, `robots`, `alternates`, `customMeta`, `authors`, `publisher`, `viewport`, `hreflang`, `manifest`, `pwa`, `socialProfiles`, `verification`, `structuredData`, `assets`, `archives`, `other`, and many experimental/runtime-specific keys. See `dist/index.d.ts` for the complete shape.
+
+    - NextJSMetadata: the output shape intended to align with Next.js `Metadata` (title can be a string or an object with `template` and `default`, `metadataBase` becomes a URL if provided, `icons`, `openGraph`, `twitter`, etc.). See `dist/index.d.ts`.
+
+    Primary functions (exports):
+
+    - generateNextMetadata(options: SEOConfig, parent?: AsyncMetadata): Promise<NextJSMetadata>
+      - Produces runtime metadata by applying fallbacks and merging with an optional `parent` metadata (awaited). Uses logic described in "Behavior and edge cases".
+
+    - generateStaticNextMetadata(options: SEOConfig): NextJSMetadata
+      - Produces static metadata object (no parent merge). Ensures `openGraph.type` defaults to `website` if not provided.
+
+    - metadata(options: SEOConfig): NextJSMetadata
+      - Primary helper which maps the provided `SEOConfig` into Next.js-compatible metadata. It normalizes favicons, maps twitter/openGraph fallback logic, and converts `metadataBase` strings to `URL` instances when present.
+
+    - generateLayoutNextMetadata
+      - Alias of `metadata` (exported as `generateLayoutNextMetadata = metadata` in dist)
+
+    - generateDynamicNextMetadata(params: { [key: string]: string | string[] }, options: SEOConfig): Promise<NextJSMetadata>
+      - Replaces `{key}` placeholders in `title` and `description` using `params` and then delegates to `generateStaticNextMetadata`.
+
+    - validateSEOConfig(options: SEOConfig): Array<{ type: "error" | "warning"; field: string; message: string }>
+      - Returns validation results. `title` and `description` missing => errors. Many recommended fields produce warnings.
+
+    ---
+
+    ## Favicons & images
+
+    - The helper maps favicon objects with `href` to metadata `icons` entries using `url` property.
+    - `alternates.favicons` (array) is preferred. If absent, `alternates.favicon` (single) or top-level `favicon` (single) are used.
+    - OpenGraph images accept objects with `url` (string|URL), `width`, `height`, `alt`, and `type`.
+
+    ---
+
+    ## Custom meta tags
+
+    - `customMeta` in `SEOConfig` is passed through as `customMeta` in the returned metadata when present. Each entry typically includes `name` or `property` with a `content` value.
+
+    ---
+
+    ## Validation helper
+
+    Use `validateSEOConfig` to get quick guidance before sending metadata to a page. It returns structured errors and warnings so you can fail fast or log suggestions in CI.
+
+    Example:
+
+    ```js
+    import { validateSEOConfig } from "@0xgotchi/seo";
+
+    const results = validateSEOConfig({ title: "x" });
+    // results is an array of errors/warnings; inspect or throw on errors in CI
+    ```
+
+    ---
+
+    ## Examples
+
+    Pages Router (rendering manually with next/head)
+
+    ```tsx
+    import Head from "next/head";
+    import { metadata as buildMetadata } from "@0xgotchi/seo";
+
+    const seoConfig = { title: "Starlight Books", description: "..." };
+    const md = buildMetadata(seoConfig as any);
+
+    export default function MyPage() {
+      return (
+        <>
+          <Head>
+            <title>{typeof md.title === "string" ? md.title : md.title?.default}</title>
+            <meta name="description" content={md.description as string} />
+            {md.openGraph?.images?.map((img: any, i: number) => (
+              <meta key={i} property="og:image" content={String(img.url)} />
+            ))}
+          </Head>
+          <main>...</main>
+        </>
+      );
+    }
+    ```
+
+    Dynamic server component example using generateMetadata
+
+    ```ts
+    import { metadata as buildMetadata } from "@0xgotchi/seo";
+    import { getPostBySlug } from "@/lib/cms";
+    import type { Metadata } from "next";
+
+    export async function generateMetadata({ params }): Promise<Metadata> {
+      const post = await getPostBySlug(params.slug);
+      const seoConfig = {
+        title: post.title,
+        description: post.excerpt,
+        openGraph: {
+          title: post.title,
+          description: post.excerpt,
+          url: `https://example.com/posts/${params.slug}`,
+          images: [{ url: post.ogImage, alt: post.title, width: 1200, height: 630 }],
+        },
+      };
+
+      return buildMetadata(seoConfig as any) as unknown as Metadata;
+    }
+
+    export default async function PostPage({ params }) {
+      const post = await getPostBySlug(params.slug);
+      return <article>{/* ... */}</article>;
+    }
+    ```
+
+    ---
+
+    ## Testing & verifying metadata
+
+    - Inspect page source or use social preview tools (Facebook Sharing Debugger, Twitter Card Validator).
+    - Unit tests should call `metadata`, `generateStaticNextMetadata`, `generateNextMetadata` and `generateDynamicNextMetadata` with representative configs and assert the returned objects.
+
+    ---
+
+    ## Contributing
+
+    Contributions are welcome. When changing behavior, update `dist/index.d.ts` and `dist/index.js` accordingly and add tests to `tests/` for new behaviors or edge cases.
+
+    ---
+
+    ## License
+
+    MIT (or check the repository license file).
+
+    ---
+
+    ## Completion note
+
+    This README was updated to match the runtime behavior and TypeScript declaration files found in `dist/index.js` and `dist/index.d.ts`. If you want, I can now run the TypeScript build and tests to ensure everything passes.

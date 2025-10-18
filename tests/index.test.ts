@@ -1,6 +1,8 @@
+/// <reference types="jest" />
+
 import {
 	generateDynamicNextMetadata,
-	generateLayoutNextMetadata,
+	metadata,
 	generateNextMetadata,
 	generateStaticNextMetadata,
 	type NextJSMetadata,
@@ -563,20 +565,20 @@ describe("SEO Metadata Generation", () => {
 
 	describe("generateLayoutMetadata", () => {
 		it("should generate metadata for layout", () => {
-			const metadata = generateLayoutNextMetadata(baseOptions);
-			expect(metadata.title).toEqual({
+			const metadataObj = metadata(baseOptions);
+			expect(metadataObj.title).toEqual({
 				template: "%s | Site",
 				default: "Default Title",
 			});
-			expect(metadata.description).toBe("Test description");
-			expect(metadata.openGraph).toBeDefined();
-			expect(metadata.twitter).toBeDefined();
-			expect(metadata.robots).toBe("index,follow");
-			expect(metadata.icons).toBeDefined();
-			expect(metadata.verification).toBeDefined();
-			expect(metadata.authors).toBeDefined();
-			expect(metadata.publisher).toBe("Example Publisher");
-			expect(metadata.viewport).toBe("width=device-width, initial-scale=1");
+			expect(metadataObj.description).toBe("Test description");
+			expect(metadataObj.openGraph).toBeDefined();
+			expect(metadataObj.twitter).toBeDefined();
+			expect(metadataObj.robots).toBe("index,follow");
+			expect(metadataObj.icons).toBeDefined();
+			expect(metadataObj.verification).toBeDefined();
+			expect(metadataObj.authors).toBeDefined();
+			expect(metadataObj.publisher).toBe("Example Publisher");
+			expect(metadataObj.viewport).toBe("width=device-width, initial-scale=1");
 		});
 	});
 

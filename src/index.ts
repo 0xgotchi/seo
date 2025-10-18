@@ -248,6 +248,7 @@ export interface SEOConfig {
 		cacheStrategy?: "networkFirst" | "cacheFirst" | "staleWhileRevalidate";
 	};
 	other?: Record<string, unknown>;
+	[key: string]: unknown;
 }
 
 export interface NextJSMetadata {
@@ -331,6 +332,24 @@ function applyFallbacks(options: SEOConfig): SEOConfig {
 	} as SEOConfig;
 }
 
+function normalizeFavicons(options: SEOConfig) {
+	if (options.alternates && Array.isArray(options.alternates.favicons) && options.alternates.favicons.length > 0) {
+		return options.alternates.favicons;
+	}
+
+	const altAny = options.alternates as any;
+	if (altAny && altAny.favicon && altAny.favicon.href) {
+		return [altAny.favicon];
+	}
+
+	const topAny = options as any;
+	if (topAny && topAny.favicon && topAny.favicon.href) {
+		return [topAny.favicon];
+	}
+
+	return undefined;
+}
+
 export async function generateNextMetadata(
 	options: SEOConfig,
 	parent?: AsyncMetadata,
@@ -339,14 +358,15 @@ export async function generateNextMetadata(
 	const previous = parent ? await parent : undefined;
 	const previousImages = previous?.openGraph?.images || [];
 
+	const faviconArray = normalizeFavicons(config);
 	const icons =
-		config.alternates && Array.isArray(config.alternates.favicons)
-			? config.alternates.favicons.map((icon) => ({
+		faviconArray && Array.isArray(faviconArray)
+			? faviconArray.map((icon) => ({
 					rel: icon.rel,
 					url: icon.href,
 					sizes: icon.sizes,
 					type: icon.type,
-				}))
+			  }))
 			: undefined;
 
 	const alternates =
@@ -358,7 +378,7 @@ export async function generateNextMetadata(
 					appLinks: config.alternates.appLinks,
 					media: config.alternates.media,
 					formats: config.alternates.formats,
-				}
+			  }
 			: config.hreflang && Array.isArray(config.hreflang)
 				? {
 						languages: config.hreflang.reduce(
@@ -393,6 +413,33 @@ export async function generateNextMetadata(
 		};
 	}
 
+	const openGraphCombined =
+		config.openGraph || previous?.openGraph
+			? {
+					...(previous?.openGraph || {}),
+					...(config.openGraph || {}),
+					images: [
+						...(previousImages || []),
+						...(config.openGraph?.images || []),
+					],
+			  }
+			: undefined;
+
+	const twitterFromOG =
+		openGraphCombined?.images && openGraphCombined.images.length > 0
+			? openGraphCombined.images.map((img) => String(img.url))
+			: undefined;
+
+	const twitterValue = config.twitter
+		? {
+				...(config.twitter as Record<string, unknown>),
+				images:
+					(config.twitter as any).images ?? twitterFromOG,
+		  }
+		: twitterFromOG
+		? { images: twitterFromOG }
+		: undefined;
+
 	const metadata: NextJSMetadata = {
 		title: resolvedTitle,
 		description: config.description,
@@ -400,18 +447,8 @@ export async function generateNextMetadata(
 		metadataBase: config.metadataBase
 			? new URL(config.metadataBase)
 			: undefined,
-		openGraph:
-			config.openGraph || previous?.openGraph
-				? {
-						...(previous?.openGraph || {}),
-						...(config.openGraph || {}),
-						images: [
-							...(previousImages || []),
-							...(config.openGraph?.images || []),
-						],
-					}
-				: undefined,
-		twitter: config.twitter,
+		openGraph: openGraphCombined,
+		twitter: twitterValue as NextJSMetadata["twitter"],
 		robots: config.robots as string | Record<string, unknown>,
 		icons,
 		alternates,
@@ -457,14 +494,15 @@ export async function generateNextMetadata(
 export function generateStaticNextMetadata(options: SEOConfig): NextJSMetadata {
 	const config = applyFallbacks(options);
 
+	const faviconArray = normalizeFavicons(config);
 	const icons =
-		config.alternates && Array.isArray(config.alternates.favicons)
-			? config.alternates.favicons.map((icon) => ({
+		faviconArray && Array.isArray(faviconArray)
+			? faviconArray.map((icon) => ({
 					rel: icon.rel,
 					url: icon.href,
 					sizes: icon.sizes,
 					type: icon.type,
-				}))
+			  }))
 			: undefined;
 
 	const alternates =
@@ -479,6 +517,27 @@ export function generateStaticNextMetadata(options: SEOConfig): NextJSMetadata {
 				}
 			: undefined;
 
+	const openGraphObj = config.openGraph
+		? {
+				...config.openGraph,
+				type: config.openGraph.type || "website",
+		  }
+		: undefined;
+
+	const twitterFromOGStatic =
+		openGraphObj?.images && openGraphObj.images.length > 0
+			? openGraphObj.images.map((img) => String(img.url))
+			: undefined;
+
+	const twitterStatic = config.twitter
+		? {
+				...(config.twitter as Record<string, unknown>),
+				images: (config.twitter as any).images ?? twitterFromOGStatic,
+		  }
+		: twitterFromOGStatic
+		? { images: twitterFromOGStatic }
+		: undefined;
+
 	const metadata: NextJSMetadata = {
 		title: config.title,
 		description: config.description,
@@ -486,13 +545,8 @@ export function generateStaticNextMetadata(options: SEOConfig): NextJSMetadata {
 		metadataBase: config.metadataBase
 			? new URL(config.metadataBase)
 			: undefined,
-		openGraph: config.openGraph
-			? {
-					...config.openGraph,
-					type: config.openGraph.type || "website",
-				}
-			: undefined,
-		twitter: config.twitter,
+		openGraph: openGraphObj,
+		twitter: twitterStatic as NextJSMetadata["twitter"],
 		robots: config.robots as string | Record<string, unknown>,
 		icons,
 		alternates,
@@ -512,15 +566,16 @@ export function generateStaticNextMetadata(options: SEOConfig): NextJSMetadata {
 	) as NextJSMetadata;
 }
 
-export function generateLayoutNextMetadata(options: SEOConfig): NextJSMetadata {
+export function metadata(options: SEOConfig): NextJSMetadata {
+	const faviconArray = normalizeFavicons(options);
 	const icons =
-		options.alternates && Array.isArray(options.alternates.favicons)
-			? options.alternates.favicons.map((icon) => ({
+		faviconArray && Array.isArray(faviconArray)
+			? faviconArray.map((icon) => ({
 					rel: icon.rel,
 					url: icon.href,
 					sizes: icon.sizes,
 					type: icon.type,
-				}))
+			  }))
 			: undefined;
 
 	const titleValue: NextJSMetadata["title"] =
@@ -537,6 +592,22 @@ export function generateLayoutNextMetadata(options: SEOConfig): NextJSMetadata {
 					default: options.defaultTitle || options.title || "Default Title",
 				};
 
+	const openGraphObj = options.openGraph;
+
+	const twitterFromOGLay =
+		openGraphObj?.images && openGraphObj.images.length > 0
+			? openGraphObj.images.map((img) => String(img.url))
+			: undefined;
+
+	const twitterValue = options.twitter
+		? {
+				...(options.twitter as Record<string, unknown>),
+				images: (options.twitter as any).images ?? twitterFromOGLay,
+		  }
+		: twitterFromOGLay
+		? { images: twitterFromOGLay }
+		: undefined;
+
 	const metadata: NextJSMetadata = {
 		title: titleValue,
 		description: options.description,
@@ -544,8 +615,8 @@ export function generateLayoutNextMetadata(options: SEOConfig): NextJSMetadata {
 		metadataBase: options.metadataBase
 			? new URL(options.metadataBase)
 			: undefined,
-		openGraph: options.openGraph,
-		twitter: options.twitter,
+		openGraph: openGraphObj,
+		twitter: twitterValue as NextJSMetadata["twitter"],
 		robots: options.robots,
 		icons,
 		verification: options.verification,
@@ -558,6 +629,8 @@ export function generateLayoutNextMetadata(options: SEOConfig): NextJSMetadata {
 		Object.entries(metadata).filter(([, value]) => value !== undefined),
 	) as NextJSMetadata;
 }
+
+export const generateLayoutNextMetadata = metadata;
 
 export async function generateDynamicNextMetadata(
 	params: { [key: string]: string | string[] },

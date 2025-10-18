@@ -1,8 +1,11 @@
+/// <reference types="jest" />
+
 import {
 	generateDynamicNextMetadata,
 	generateNextMetadata,
 	generateStaticNextMetadata,
 	type SEOConfig,
+	type AlternateLinks,
 	validateSEOConfig,
 } from "../src/index";
 
@@ -72,5 +75,42 @@ describe("Edge cases for SEO metadata", () => {
 	test("generateStaticNextMetadata handles missing fields gracefully", () => {
 		const metadata = generateStaticNextMetadata({} as SEOConfig);
 		expect(metadata.title).toBe("Untitled Page");
+	});
+
+	test("accept singular alternates.favicon and top-level favicon", () => {
+		const optionsAlt: SEOConfig = {
+			alternates: {
+				favicon: {
+					rel: "icon",
+					href: "/favicon-alt.png",
+					sizes: "32x32",
+					type: "image/png",
+				},
+			} as Partial<AlternateLinks>,
+		};
+
+		const metadataAlt = generateStaticNextMetadata(optionsAlt);
+		expect(metadataAlt.icons).toEqual([
+			{
+				rel: "icon",
+				url: "/favicon-alt.png",
+				sizes: "32x32",
+				type: "image/png",
+			},
+		]);
+
+		const optionsTop: SEOConfig = {
+			...( { favicon: { rel: "icon", href: "/favicon-top.png", sizes: "16x16", type: "image/png" } } as unknown as SEOConfig ),
+		};
+
+		const metadataTop = generateStaticNextMetadata(optionsTop);
+		expect(metadataTop.icons).toEqual([
+			{
+				rel: "icon",
+				url: "/favicon-top.png",
+				sizes: "16x16",
+				type: "image/png",
+			},
+		]);
 	});
 });
