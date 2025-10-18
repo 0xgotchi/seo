@@ -559,6 +559,7 @@ export function generateStaticNextMetadata(options: SEOConfig): NextJSMetadata {
 		authors: config.authors,
 		publisher: config.publisher,
 		viewport: config.viewport || "width=device-width, initial-scale=1",
+		themeColor: config.themeColor,
 	};
 
 	return Object.fromEntries(
@@ -623,6 +624,13 @@ export function metadata(options: SEOConfig): NextJSMetadata {
 		authors: options.authors,
 		publisher: options.publisher,
 		viewport: options.viewport || "width=device-width, initial-scale=1",
+		themeColor: options.themeColor,
+		alternates: options.alternates,
+		breadcrumbs: options.breadcrumbs,
+		structuredData: options.structuredData,
+		customMeta: options.customMeta,
+		pwa: options.pwa,
+		socialProfiles: options.socialProfiles,
 	};
 
 	return Object.fromEntries(

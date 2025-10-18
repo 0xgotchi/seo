@@ -74,6 +74,7 @@ Top-level fields and groups supported:
 - Any extra unknown top-level keys are preserved in the output
 
 Notes:
+- The `metadata(options)` helper propagates all the fields listed below, including: `themeColor`, `alternates`, `breadcrumbs`, `structuredData`, `customMeta`, `pwa`, and `socialProfiles`.
 - `generateNextMetadata` and `generateStaticNextMetadata` apply sensible fallbacks for title, description, viewport and colorScheme.
 - Favicons are normalized: the code checks `alternates.favicons`, then `alternates.favicon`, then a top-level `favicon` object.
 - If a `parent` `AsyncMetadata` is provided to `generateNextMetadata`, the library merges `parent.openGraph.images` with the child's `openGraph.images`.
@@ -97,6 +98,11 @@ Use one of these patterns in the Next.js App Router:
 - Use `generateStaticNextMetadata` and export the result as:
   ```ts
   export const metadata = generateStaticNextMetadata(mySEOConfig)
+  ```
+  Or, as a shortcut, you can export directly via the `metadata` helper:
+  ```ts
+  import { metadata as buildMetadata } from "@0xgotchi/seo";
+  export const metadata = buildMetadata(mySEOConfig);
   ```
 
 2) Dynamic metadata that merges with parent metadata
@@ -158,6 +164,25 @@ const simpleSEOConfig: SEOConfig = {
     description: "OpenGraph description for simple page",
     images: [{ url: "https://example.com/simple-og.png", width: 1200, height: 630 }],
   },
+  // Newly highlighted fields (also propagated by metadata())
+  themeColor: "#ffffff",
+  breadcrumbs: [
+    { name: "Home", url: "/" },
+    { name: "Simple" },
+  ],
+  structuredData: [
+    { "@type": "WebPage", name: "Simple Page", url: "https://example.com/simple" },
+  ],
+  customMeta: [
+    { name: "color-scheme", content: "light dark" },
+  ],
+  pwa: {
+    manifest: "/manifest.json",
+    themeColor: "#ffffff",
+  },
+  socialProfiles: [
+    { network: "twitter", url: "https://twitter.com/example" },
+  ],
 };
 
 export const metadata: NextJSMetadata = generateStaticNextMetadata(simpleSEOConfig);
